@@ -2,14 +2,14 @@
 // Use of this source code is governed by the GPL-2 license described in the
 // LICENSE file.
 
-package fdtgpio
+package main
 
 import (
 	"strconv"
 	"strings"
 
 	"github.com/platinasystems/fdt"
-	"github.com/platinasystems/go/internal/gpio"
+	"github.com/platinasystems/gpio"
 )
 
 // Build map of gpio pins for this gpio controller
