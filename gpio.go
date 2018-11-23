@@ -5,27 +5,15 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/platinasystems/fdt"
 	"github.com/platinasystems/gpio"
 )
 
 func gpioInit() {
-	file := "/boot/platina-mk1-bmc.dtb"
 	gpio.Aliases = make(gpio.GpioAliasMap)
 	gpio.Pins = make(gpio.PinMap)
 
-	// Parse linux.dtb to generate gpio map for this machine
-	b, err := ioutil.ReadFile(file)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v", file, err)
-		return
-	}
-	t := &fdt.Tree{Debug: false, IsLittleEndian: false}
-	t.Parse(b)
+	t := fdt.DefaultTree()
 
 	t.MatchNode("aliases", GatherAliases)
 	t.EachProperty("gpio-controller", "", GatherPins)
