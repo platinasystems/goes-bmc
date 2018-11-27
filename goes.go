@@ -28,7 +28,6 @@ import (
 	"github.com/platinasystems/go/goes/cmd/export"
 	"github.com/platinasystems/go/goes/cmd/falsecmd"
 	"github.com/platinasystems/go/goes/cmd/fantrayd"
-	"github.com/platinasystems/go/goes/cmd/femtocom"
 	"github.com/platinasystems/go/goes/cmd/ficmd"
 	"github.com/platinasystems/go/goes/cmd/fspd"
 	"github.com/platinasystems/go/goes/cmd/function"
@@ -43,7 +42,6 @@ import (
 	"github.com/platinasystems/go/goes/cmd/i2c"
 	"github.com/platinasystems/go/goes/cmd/i2cd"
 	"github.com/platinasystems/go/goes/cmd/ifcmd"
-	"github.com/platinasystems/go/goes/cmd/iminfo"
 	"github.com/platinasystems/go/goes/cmd/imx6d"
 	"github.com/platinasystems/go/goes/cmd/insmod"
 	"github.com/platinasystems/go/goes/cmd/install"
@@ -124,8 +122,7 @@ var Goes = &goes.Goes{
 		"fantrayd": &fantrayd.Command{
 			Init: fantraydInit,
 		},
-		"femtocom": femtocom.Command{},
-		"fi":       &ficmd.Command{},
+		"fi": &ficmd.Command{},
 		"fspd": &fspd.Command{
 			Init: fspdInit,
 			Gpio: gpioInit,
@@ -217,7 +214,6 @@ var Goes = &goes.Goes{
 			},
 			ByName: map[string]cmd.Cmd{
 				"cmdline": cmdline.Command{},
-				"iminfo":  iminfo.Command{},
 				"machine": goes.ShowMachine(name),
 			},
 		},
