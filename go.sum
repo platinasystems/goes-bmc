@@ -20,6 +20,8 @@ github.com/platinasystems/fdt v1.0.0 h1:FZy5HfpeuHUD+wG6rZo2kbmQOb6n0AwvN7mOM96g
 github.com/platinasystems/fdt v1.0.0/go.mod h1:WM0Ssx33gkNWXu07exXBEh0E4VXtPXpYulmmkZHK2qM=
 github.com/platinasystems/go v1.1.1 h1:G8poe3NrVMSfQg5GcV4F9Ku10y1Haz8fO0S/2tfCM0c=
 github.com/platinasystems/go v1.1.1/go.mod h1:fMhBQa/5MUeRrBzgaf+Zt5vijVfR4QrQPQ+2YxXBDlA=
+github.com/platinasystems/go v1.1.2 h1:vJFGwgPuec0Jmt1oo5NRog/J1dynx4KV1gbmXNT6siY=
+github.com/platinasystems/go v1.1.2/go.mod h1:403XKgNysmz7yQ1hq+KICFA+BxKdv9WKs900v+yO72o=
 github.com/platinasystems/go-redis-server v0.0.0-20181030193423-fcb8fa742b73 h1:8DVy1rcSWTnJt248DAD0JzeASS3j8Ljg+rCoKPHW5Qo=
 github.com/platinasystems/go-redis-server v0.0.0-20181030193423-fcb8fa742b73/go.mod h1:/GXF5FQty+9BTtfCsfFuD4/pHf/b2cN3f3Ic0nLagQw=
 github.com/platinasystems/gpio v0.0.0-20181120172958-aa9a44e83566 h1:K+WxE4dE01A4ZagXVNHd81J6PBubuP7r/2nNzqhkRTs=
