@@ -7,7 +7,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/platinasystems/goes/cmd/platina/mk1/bmc/ucd9090d"
+	"github.com/platinasystems/goes-bmc/cmd/ucd9090d"
 	"github.com/platinasystems/redis"
 )
 

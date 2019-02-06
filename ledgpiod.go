@@ -7,7 +7,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/platinasystems/goes/cmd/platina/mk1/bmc/ledgpiod"
+	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
 	"github.com/platinasystems/redis"
 )
 
