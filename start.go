@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	//"github.com/platinasystems/go/goes/cmd/platina/mk1/bmc/upgrade"
+	//"github.com/platinasystems/goes/cmd/platina/mk1/bmc/upgrade"
 	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/log"
 	"github.com/platinasystems/redis"
