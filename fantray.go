@@ -4,7 +4,7 @@
 
 package main
 
-import "github.com/platinasystems/go/goes/cmd/fantrayd"
+import "github.com/platinasystems/goes/cmd/fantrayd"
 
 func fantraydInit() {
 	fantrayd.Vdev.Bus = 1
