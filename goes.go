@@ -10,6 +10,7 @@ import (
 	"github.com/platinasystems/goes"
 	"github.com/platinasystems/goes/cmd"
 	"github.com/platinasystems/goes/cmd/bang"
+	"github.com/platinasystems/goes/cmd/buildid"
 	"github.com/platinasystems/goes/cmd/cat"
 	"github.com/platinasystems/goes/cmd/cd"
 	"github.com/platinasystems/goes/cmd/chmod"
@@ -42,6 +43,7 @@ import (
 	"github.com/platinasystems/goes/cmd/i2c"
 	"github.com/platinasystems/goes/cmd/i2cd"
 	"github.com/platinasystems/goes/cmd/ifcmd"
+	"github.com/platinasystems/goes/cmd/iminfo"
 	"github.com/platinasystems/goes/cmd/imx6d"
 	"github.com/platinasystems/goes/cmd/insmod"
 	"github.com/platinasystems/goes/cmd/install"
@@ -50,6 +52,7 @@ import (
 	"github.com/platinasystems/goes/cmd/keys"
 	"github.com/platinasystems/goes/cmd/kill"
 	"github.com/platinasystems/goes/cmd/ln"
+	"github.com/platinasystems/goes/cmd/log"
 	"github.com/platinasystems/goes/cmd/ls"
 	"github.com/platinasystems/goes/cmd/lsmod"
 	"github.com/platinasystems/goes/cmd/mkdir"
@@ -106,7 +109,7 @@ var Goes = &goes.Goes{
 		"chmod":   chmod.Command{},
 		"cli":     &cli.Command{},
 		"cp":      cp.Command{},
-		"daemons": daemons.Status{},
+		"daemons": daemons.Admin,
 		"diag": &diag.Command{
 			Gpio: gpioInit,
 		},
@@ -176,7 +179,7 @@ var Goes = &goes.Goes{
 			Init: ledgpiodInit,
 		},
 		"ln":      ln.Command{},
-		"log":     daemons.Log{},
+		"log":     log.Command{},
 		"ls":      ls.Command{},
 		"lsmod":   lsmod.Command{},
 		"mkdir":   mkdir.Command{},
@@ -213,7 +216,15 @@ var Goes = &goes.Goes{
 				lang.EnUS: "print stuff",
 			},
 			ByName: map[string]cmd.Cmd{
-				"cmdline": cmdline.Command{},
+				"buildid":   buildid.Command{},
+				"cmdline":   cmdline.Command{},
+				"copyright": License,
+				"iminfo":    iminfo.Command{},
+				"license":   License,
+				"log":       daemons.Log{},
+				"machine":   Machine,
+				"patents":   Patents,
+				"version":   &Version,
 			},
 		},
 		"/init":  &slashinit.Command{},
