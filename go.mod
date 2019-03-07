@@ -12,6 +12,7 @@ require (
 	github.com/platinasystems/parms v1.0.0
 	github.com/platinasystems/redis v1.2.0
 	github.com/platinasystems/ssh_key_helper v0.0.1 // indirect
+	github.com/platinasystems/ubi v0.0.2
 	github.com/platinasystems/url v1.0.0
 	github.com/tatsushid/go-fastping v0.0.0-20160109021039-d7bb493dee3e
 )

@@ -237,7 +237,7 @@ var Goes = &goes.Goes{
 				"version":   version.Command{},
 			},
 		},
-		"/init":  &slashinit.Command{},
+		"/init":  &slashinit.Command{FsHook: ubiSetup},
 		"sleep":  sleep.Command{},
 		"source": &source.Command{},
 		"sshd":   &sshd.Command{FailSafe: false},
