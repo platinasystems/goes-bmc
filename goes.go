@@ -190,7 +190,7 @@ var Goes = &goes.Goes{
 		"ping":    ping.Command{},
 		"ps":      ps.Command{},
 		"pwd":     pwd.Command{},
-		"reboot":  reboot.Command{},
+		"reboot":  &reboot.Command{},
 		"redisd": &redisd.Command{
 			Devs:    []string{"lo", "eth0"},
 			Machine: "platina-mk1-bmc",
