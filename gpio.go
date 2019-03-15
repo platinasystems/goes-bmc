@@ -10,6 +10,9 @@ import (
 )
 
 func gpioInit() {
+	if gpio.Aliases != nil {
+		return
+	}
 	gpio.Aliases = make(gpio.GpioAliasMap)
 	gpio.Pins = make(gpio.PinMap)
 
@@ -19,4 +22,8 @@ func gpioInit() {
 		t.MatchNode("aliases", GatherAliases)
 		t.EachProperty("gpio-controller", "", GatherPins)
 	}
+}
+
+func init() {
+	gpioInit()
 }
