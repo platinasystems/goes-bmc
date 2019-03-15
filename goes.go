@@ -87,6 +87,7 @@ import (
 	"github.com/platinasystems/goes/cmd/testcmd"
 	"github.com/platinasystems/goes/cmd/thencmd"
 	"github.com/platinasystems/goes/cmd/truecmd"
+	"github.com/platinasystems/goes/cmd/ubi"
 	"github.com/platinasystems/goes/cmd/umount"
 	"github.com/platinasystems/goes/cmd/uninstall"
 	"github.com/platinasystems/goes/cmd/uptimed"
@@ -242,7 +243,9 @@ var Goes = &goes.Goes{
 		"toggle": &toggle.Command{
 			Init: gpioInit,
 		},
-		"true": truecmd.Command{},
+		"true":      truecmd.Command{},
+		"ubiattach": ubi.AttachCommand{},
+		"ubidetach": ubi.DetachCommand{},
 		"ucd9090d": &ucd9090d.Command{
 			Init: ucd9090dInit,
 			Gpio: gpioInit,
