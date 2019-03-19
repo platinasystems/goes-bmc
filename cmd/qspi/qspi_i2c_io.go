@@ -2,8 +2,7 @@
 // Use of this source code is governed by the GPL-2 license described in the
 // LICENSE file.
 
-// Package ucd9090 provides access to the UCD9090 Power Sequencer/Monitor chip
-package upgrade
+package qspi
 
 import (
 	"net/rpc"
@@ -14,6 +13,8 @@ import (
 )
 
 const MAXOPS = 30
+
+var sd i2c.SMBusData
 
 type I struct {
 	InUse     bool

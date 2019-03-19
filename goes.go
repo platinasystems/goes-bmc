@@ -14,6 +14,7 @@ import (
 	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
 	"github.com/platinasystems/goes-bmc/cmd/mmclog"
 	"github.com/platinasystems/goes-bmc/cmd/mmclogd"
+	"github.com/platinasystems/goes-bmc/cmd/qspi"
 	"github.com/platinasystems/goes-bmc/cmd/toggle"
 	"github.com/platinasystems/goes-bmc/cmd/ucd9090d"
 	"github.com/platinasystems/goes-bmc/cmd/upgrade"
@@ -216,6 +217,7 @@ var Goes = &goes.Goes{
 		"restart": &restart.Command{},
 		"rm":      rm.Command{},
 		"rmmod":   rmmod.Command{},
+		"qspi":    qspi.Command{},
 		"show": &goes.Goes{
 			NAME:  "show",
 			USAGE: "show OBJECT",
