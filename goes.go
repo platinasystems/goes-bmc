@@ -29,6 +29,7 @@ import (
 	"github.com/platinasystems/goes/cmd/export"
 	"github.com/platinasystems/goes/cmd/falsecmd"
 	"github.com/platinasystems/goes/cmd/fantrayd"
+	"github.com/platinasystems/goes/cmd/femtocom"
 	"github.com/platinasystems/goes/cmd/ficmd"
 	"github.com/platinasystems/goes/cmd/fspd"
 	"github.com/platinasystems/goes/cmd/function"
@@ -126,7 +127,8 @@ var Goes = &goes.Goes{
 		"fantrayd": &fantrayd.Command{
 			Init: fantraydInit,
 		},
-		"fi": &ficmd.Command{},
+		"femtocom": femtocom.Command{},
+		"fi":       &ficmd.Command{},
 		"fspd": &fspd.Command{
 			Init: fspdInit,
 			Gpio: gpioInit,
