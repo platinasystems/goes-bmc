@@ -80,6 +80,7 @@ import (
 	"github.com/platinasystems/goes/cmd/slashinit"
 	"github.com/platinasystems/goes/cmd/sleep"
 	"github.com/platinasystems/goes/cmd/source"
+	"github.com/platinasystems/goes/cmd/sshd"
 	"github.com/platinasystems/goes/cmd/start"
 	"github.com/platinasystems/goes/cmd/stop"
 	"github.com/platinasystems/goes/cmd/stty"
@@ -143,6 +144,7 @@ var Goes = &goes.Goes{
 				[]string{"imx6d"},
 				[]string{"ledgpiod"},
 				[]string{"mmclogd"},
+				[]string{"sshd"},
 				[]string{"upgraded"},
 				[]string{"uptimed"},
 				[]string{"ucd9090d"},
@@ -233,6 +235,7 @@ var Goes = &goes.Goes{
 		"/init":  &slashinit.Command{},
 		"sleep":  sleep.Command{},
 		"source": &source.Command{},
+		"sshd":   &sshd.Command{FailSafe: false},
 		"start": &start.Command{
 			ConfGpioHook: startConfGpioHook,
 		},
