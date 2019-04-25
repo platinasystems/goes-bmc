@@ -68,12 +68,6 @@ func rmFile(f string) error {
 	return nil
 }
 
-func reboot() error {
-	kexec.Prepare()
-	_ = syscall.Reboot(syscall.LINUX_REBOOT_CMD_KEXEC)
-	return syscall.Reboot(syscall.LINUX_REBOOT_CMD_RESTART)
-}
-
 func unzip() error {
 	archive := ArchiveName
 	reader, err := zip.OpenReader(archive)

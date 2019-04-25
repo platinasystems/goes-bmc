@@ -12,8 +12,8 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/flags"
+	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/parms"
 )
 
@@ -240,8 +240,6 @@ func doUpgrade(s string, v string, t bool, f bool, q bool) (err error) {
 	}
 	UpdateEnv(false)
 	UpdateEnv(true)
-	if err = reboot(); err != nil {
-		return err
-	}
+
 	return nil
 }
