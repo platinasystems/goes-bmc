@@ -12,8 +12,8 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/platinasystems/flags"
 	"github.com/platinasystems/goes/lang"
+	"github.com/platinasystems/flags"
 	"github.com/platinasystems/parms"
 )
 
@@ -71,6 +71,7 @@ OPTIONS
 	-l                display version of selected server and version
 	-r                report QSPI installed versions, QSPI booted from
 	-c                check SHA-1's of flash
+	-1                upgrade QSPI1(recovery QSPI), default is QSPI0
 	-f                force upgrade (ignore version check)`,
 	}
 }
@@ -78,7 +79,7 @@ OPTIONS
 func (c *Command) Main(args ...string) error {
 	command = c
 	initQfmt()
-	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c")
+	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c", "-1")
 	parm, args := parms.New(args, "-v", "-s")
 	if len(parm.ByName["-v"]) == 0 {
 		parm.ByName["-v"] = DfltVer
@@ -111,7 +112,8 @@ func (c *Command) Main(args ...string) error {
 	}
 
 	if err := doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
-		flag.ByName["-t"], flag.ByName["-f"]); err != nil {
+		flag.ByName["-t"], flag.ByName["-f"],
+		flag.ByName["-1"]); err != nil {
 		return err
 	}
 	return nil
@@ -144,7 +146,11 @@ func reportVerServer(s string, v string, t bool) (err error) {
 }
 
 func reportVerQSPIdetail() (err error) {
-	err = printJSON()
+	err = printJSON(false)
+	if err != nil {
+		return err
+	}
+	err = printJSON(true)
 	if err != nil {
 		return err
 	}
@@ -165,13 +171,16 @@ func reportVerQSPI() (err error) {
 }
 
 func compareChecksums() (err error) {
-	if err = cmpSums(); err != nil {
+	if err = cmpSums(false); err != nil {
+		return err
+	}
+	if err = cmpSums(true); err != nil {
 		return err
 	}
 	return nil
 }
 
-func doUpgrade(s string, v string, t bool, f bool) (err error) {
+func doUpgrade(s string, v string, t bool, f bool, q bool) (err error) {
 	fmt.Print("\n")
 
 	n, err := getFile(s, v, t, ArchiveName)
@@ -187,7 +196,7 @@ func doUpgrade(s string, v string, t bool, f bool) (err error) {
 	defer rmFiles()
 
 	if !f {
-		qv, err := getVerQSPI()
+		qv, err := getVerQSPI(q)
 		if err != nil {
 			return err
 		}
@@ -222,10 +231,17 @@ func doUpgrade(s string, v string, t bool, f bool) (err error) {
 		}
 	}
 
+	selectQSPI(q)
+	if q == true {
+		fmt.Println("Upgrading QSPI1...\n")
+	}
 	if err = writeImageAll(); err != nil {
 		return fmt.Errorf("*** UPGRADE ERROR! ***: %v\n", err)
 	}
 	UpdateEnv(false)
 	UpdateEnv(true)
+	if err = reboot(); err != nil {
+		return err
+	}
 	return nil
 }

@@ -68,6 +68,12 @@ func rmFile(f string) error {
 	return nil
 }
 
+func reboot() error {
+	kexec.Prepare()
+	_ = syscall.Reboot(syscall.LINUX_REBOOT_CMD_KEXEC)
+	return syscall.Reboot(syscall.LINUX_REBOOT_CMD_RESTART)
+}
+
 func unzip() error {
 	archive := ArchiveName
 	reader, err := zip.OpenReader(archive)
@@ -113,7 +119,8 @@ func getBootedQSPI() (int, error) {
 	return -1, nil
 }
 
-func printJSON() error {
+func printJSON(q bool) error {
+	selectQSPI(q)
 	_, b, err := readFlash(Qfmt["ver"].off, Qfmt["ver"].siz)
 	if err != nil {
 		return err
@@ -126,6 +133,11 @@ func printJSON() error {
 	}
 	if k > 0 {
 		fmt.Println("")
+		if q == false {
+			fmt.Println("QSPI0 Image Details")
+		} else {
+			fmt.Println("QSPI1 Image Details")
+		}
 		var ImgInfo [5]IMGINFO
 		json.Unmarshal(b[JSON_OFFSET:k+1], &ImgInfo)
 		for i, _ := range ImgInfo {
@@ -142,7 +154,8 @@ func printJSON() error {
 	return nil
 }
 
-func getVerQSPI() (string, error) {
+func getVerQSPI(q bool) (string, error) {
+	selectQSPI(q)
 	_, b, err := readFlash(Qfmt["ver"].off, Qfmt["ver"].siz)
 	if err != nil {
 		return "", err
@@ -160,9 +173,13 @@ func getVerQSPI() (string, error) {
 }
 
 func getInstalledVersions() ([]string, error) {
-	iv := make([]string, 1)
+	iv := make([]string, 2)
 	var err error
-	iv[0], err = getVerQSPI()
+	iv[0], err = getVerQSPI(false)
+	if err != nil {
+		return nil, err
+	}
+	iv[1], err = getVerQSPI(true)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +259,16 @@ func isVersionNewer(cur string, x string) (n bool, err error) {
 	return false, nil
 }
 
-func cmpSums() (err error) {
+func cmpSums(q bool) (err error) {
 	var ImgInfo [5]IMGINFO
+	if q == false {
+		fmt.Println("\nComparing checksums for QSPI0")
+	} else {
+		fmt.Println("\nComparing checksums for QSPI1")
+	}
+	if err = selectQSPI(q); err != nil {
+		return err
+	}
 
 	fd, err = syscall.Open(MTDdevice, syscall.O_RDWR, 0)
 	if err != nil {

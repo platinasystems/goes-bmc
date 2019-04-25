@@ -12,8 +12,10 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 
+	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/i2c"
 )
 
@@ -73,7 +75,8 @@ func initQfmt() {
 	return
 }
 
-func ReadBlk(blknam string) (b []byte, err error) {
+func ReadBlk(blknam string, q bool) (b []byte, err error) {
+	selectQSPI(q)
 	initQfmt()
 	_, b, err = readFlash(Qfmt[blknam].off, Qfmt[blknam].siz)
 	if err != nil {
@@ -99,7 +102,8 @@ func readFlash(of uint32, sz uint32) (n int, b []byte, err error) {
 	return n, b, nil
 }
 
-func WriteBlk(blknam string, b []byte) (err error) {
+func WriteBlk(blknam string, b []byte, q bool) (err error) {
+	selectQSPI(q)
 	initQfmt()
 	size := Qfmt[blknam].siz
 	ba := make([]byte, size)
@@ -280,15 +284,42 @@ func eraseQSPI(of uint32, sz uint32) error {
 	return nil
 }
 
+func selectQSPI(q bool) error {
+	command.gpio.Do(command.Gpio)
+
+	//i2c STOP
+	sd[0] = 0
+	j[0] = I{true, i2c.Write, 0, 0, sd, int(0x99), int(1), 0}
+	err := DoI2cRpc()
+	if err != nil {
+		return err
+	}
+
+	pin, found := gpio.Pins["QSPI_MUX_SEL"]
+	if found {
+		pin.SetValue(q)
+	}
+	time.Sleep(200 * time.Millisecond)
+
+	//i2c START
+	sd[0] = 0
+	j[0] = I{true, i2c.Write, 0, 0, sd, int(0x99), int(0), 0}
+	err = DoI2cRpc()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func UpdateEnv(q bool) (err error) {
-	b, err := GetPer()
+	b, err := GetPer(q)
 	s := strings.Split(string(b), "\x00")
 	ip := s[0]
 	if len(string(ip)) > 500 {
 		err = fmt.Errorf("no 'ip=' in per blk, skipping env update")
 		return err
 	}
-	e, bootargs, err := GetEnv()
+	e, bootargs, err := GetEnv(q)
 	if err != nil {
 		return err
 	}
@@ -302,15 +333,15 @@ func UpdateEnv(q bool) (err error) {
 		return err
 	}
 	e[bootargs] = n[0] + string(ip)
-	err = PutEnv(e)
+	err = PutEnv(e, q)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetEnv() (env []string, bootargs int, err error) {
-	b, err := ReadBlk("env")
+func GetEnv(q bool) (env []string, bootargs int, err error) {
+	b, err := ReadBlk("env", q)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -328,7 +359,7 @@ func GetEnv() (env []string, bootargs int, err error) {
 	return e[:end], bootargs, nil
 }
 
-func PutEnv(e []string) (err error) {
+func PutEnv(e []string, q bool) (err error) {
 	ee := strings.Join(e, "\x00")
 	b := make([]byte, ENVSIZE, ENVSIZE)
 	b = []byte(ee)
@@ -341,23 +372,23 @@ func PutEnv(e []string) (err error) {
 	binary.LittleEndian.PutUint32(y, x)
 	b = append(y[0:4], b[0:ENVSIZE-ENVCRC]...)
 
-	err = WriteBlk("env", b[0:ENVSIZE])
+	err = WriteBlk("env", b[0:ENVSIZE], q)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetPer() (b []byte, err error) {
-	b, err = ReadBlk("per")
+func GetPer(q bool) (b []byte, err error) {
+	b, err = ReadBlk("per", q)
 	if err != nil {
 		return nil, err
 	}
 	return b, nil
 }
 
-func PutPer(b []byte) (err error) {
-	err = WriteBlk("per", b)
+func PutPer(b []byte, q bool) (err error) {
+	err = WriteBlk("per", b, q)
 	if err != nil {
 		return err
 	}
