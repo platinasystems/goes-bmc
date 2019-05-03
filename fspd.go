@@ -4,7 +4,7 @@
 
 package main
 
-import "github.com/platinasystems/goes/cmd/fspd"
+import "github.com/platinasystems/goes-bmc/cmd/fspd"
 
 func fspdInit() {
 	fspd.Vdev[0].Slot = 2

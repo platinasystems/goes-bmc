@@ -9,6 +9,7 @@ import (
 
 	"github.com/platinasystems/goes"
 	"github.com/platinasystems/goes-bmc/cmd/diag"
+	"github.com/platinasystems/goes-bmc/cmd/fspd"
 	"github.com/platinasystems/goes-bmc/cmd/ipcfg"
 	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
 	"github.com/platinasystems/goes-bmc/cmd/mmclog"
@@ -40,7 +41,6 @@ import (
 	"github.com/platinasystems/goes/cmd/fantrayd"
 	"github.com/platinasystems/goes/cmd/femtocom"
 	"github.com/platinasystems/goes/cmd/ficmd"
-	"github.com/platinasystems/goes/cmd/fspd"
 	"github.com/platinasystems/goes/cmd/function"
 	"github.com/platinasystems/goes/cmd/gpio"
 	"github.com/platinasystems/goes/cmd/hdel"
@@ -202,7 +202,7 @@ var Goes = &goes.Goes{
 			Hook: func(pub *publisher.Publisher) {
 				eeprom.Config(
 					eeprom.BusIndex(0),
-					eeprom.BusAddress(0x55),
+					eeprom.BusAddresses([]int{0x55}),
 					eeprom.BusDelay(10*time.Millisecond),
 					eeprom.MinMacs(2),
 					eeprom.OUI([3]byte{0x02, 0x46, 0x8a}),
