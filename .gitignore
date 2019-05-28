@@ -1,0 +1,11 @@
+*~
+*#*#
+*.orig
+*.patch
+*.rej
+*.sig
+*.so
+*.swp
+*.test
+*.zip
+/goes-bmc
