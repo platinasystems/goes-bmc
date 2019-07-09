@@ -12,10 +12,8 @@ import (
 	"os"
 	"strings"
 	"syscall"
-	"time"
 	"unsafe"
 
-	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/i2c"
 )
 
@@ -54,8 +52,20 @@ type FlashFmt struct {
 	siz uint32
 }
 
-var Qfmt = map[string]FlashFmt{}
-var img = []string{"ubo", "dtb", "env", "ker", "ini", "itb", "per", "ver"}
+var qFmt = map[string]FlashFmt{
+	"ubo": FlashFmt{off: 0x000000, siz: 0x080000},
+	"dtb": FlashFmt{off: 0x080000, siz: 0x040000},
+	"env": FlashFmt{off: 0x0c0000, siz: 0x040000},
+	"itb": FlashFmt{off: 0x100000, siz: 0x800000},
+	"ker": FlashFmt{off: 0x100000, siz: 0x200000},
+	"ini": FlashFmt{off: 0x300000, siz: 0x300000},
+	"per": FlashFmt{off: 0xf80000, siz: 0x040000},
+	"ver": FlashFmt{off: 0xfc0000, siz: 0x040000},
+}
+
+var img = []string{"ubo", "dtb", "env"}
+var legacyImg = []string{"ker", "ini", "itb", "per", "ver"}
+var newImg = []string{"itb", "per", "ver"}
 
 var mi = &MTDinfo{0, 0, 0, 0, 0, 0, 0}
 var ei = &EraseInfo{0, 0}
@@ -63,22 +73,8 @@ var fd int = 0
 
 var sd i2c.SMBusData
 
-func initQfmt() {
-	Qfmt["ubo"] = FlashFmt{off: 0x000000, siz: 0x080000}
-	Qfmt["dtb"] = FlashFmt{off: 0x080000, siz: 0x040000}
-	Qfmt["env"] = FlashFmt{off: 0x0c0000, siz: 0x040000}
-	Qfmt["itb"] = FlashFmt{off: 0x100000, siz: 0x800000}
-	Qfmt["ker"] = FlashFmt{off: 0x100000, siz: 0x200000}
-	Qfmt["ini"] = FlashFmt{off: 0x300000, siz: 0x300000}
-	Qfmt["per"] = FlashFmt{off: 0xf80000, siz: 0x040000}
-	Qfmt["ver"] = FlashFmt{off: 0xfc0000, siz: 0x040000}
-	return
-}
-
-func ReadBlk(blknam string, q bool) (b []byte, err error) {
-	selectQSPI(q)
-	initQfmt()
-	_, b, err = readFlash(Qfmt[blknam].off, Qfmt[blknam].siz)
+func readBlk(blknam string) (b []byte, err error) {
+	_, b, err = readFlash(qFmt[blknam].off, qFmt[blknam].siz)
 	if err != nil {
 		return nil, err
 	}
@@ -102,10 +98,8 @@ func readFlash(of uint32, sz uint32) (n int, b []byte, err error) {
 	return n, b, nil
 }
 
-func WriteBlk(blknam string, b []byte, q bool) (err error) {
-	selectQSPI(q)
-	initQfmt()
-	size := Qfmt[blknam].siz
+func writeBlk(blknam string, b []byte) (err error) {
+	size := qFmt[blknam].siz
 	ba := make([]byte, size)
 	for i, _ := range ba {
 		ba[i] = 0xff
@@ -113,7 +107,7 @@ func WriteBlk(blknam string, b []byte, q bool) (err error) {
 	for i, _ := range b {
 		ba[i] = b[i]
 	}
-	err = writeArrayVerify(ba, Qfmt[blknam].off, Qfmt[blknam].siz, true)
+	err = writeArrayVerify(ba, qFmt[blknam].off, qFmt[blknam].siz, true)
 	if err != nil {
 		return err
 	}
@@ -133,8 +127,30 @@ func writeImageAll() (err error) {
 	}
 	for _, j := range img {
 		if err := writeImageVerify(Machine+"-"+j+".bin",
-			Qfmt[j].off, Qfmt[j].siz, true); err != nil {
+			qFmt[j].off, qFmt[j].siz, true); err != nil {
 			return err
+		}
+	}
+	if !legacy {
+		for _, j := range newImg {
+			src := Machine + "-" + j + ".bin"
+			s, err := ioutil.ReadFile(src)
+			if err != nil {
+				return fmt.Errorf("Error reading %s: %s\n", src, err)
+			}
+			dst := "/boot/" + src
+			err = ioutil.WriteFile(dst, s, 0644)
+			if err != nil {
+				return fmt.Errorf("Error writing %s: %s\n", dst, err)
+			}
+			fmt.Printf("Installed %s\n", dst)
+		}
+	} else {
+		for _, j := range legacyImg {
+			if err := writeImageVerify(Machine+"-"+j+".bin",
+				qFmt[j].off, qFmt[j].siz, true); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -142,7 +158,7 @@ func writeImageAll() (err error) {
 
 func writeImageVerify(im string, of uint32, sz uint32, vf bool) error {
 	if fi, err := os.Stat(im); !os.IsNotExist(err) {
-		if fi.Size() < 1000 {
+		if fi.Size() == 0 {
 			fmt.Println("skipping file...", im)
 			return nil
 		}
@@ -284,42 +300,15 @@ func eraseQSPI(of uint32, sz uint32) error {
 	return nil
 }
 
-func selectQSPI(q bool) error {
-	command.gpio.Do(command.Gpio)
-
-	//i2c STOP
-	sd[0] = 0
-	j[0] = I{true, i2c.Write, 0, 0, sd, int(0x99), int(1), 0}
-	err := DoI2cRpc()
-	if err != nil {
-		return err
-	}
-
-	pin, found := gpio.Pins["QSPI_MUX_SEL"]
-	if found {
-		pin.SetValue(q)
-	}
-	time.Sleep(200 * time.Millisecond)
-
-	//i2c START
-	sd[0] = 0
-	j[0] = I{true, i2c.Write, 0, 0, sd, int(0x99), int(0), 0}
-	err = DoI2cRpc()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func UpdateEnv(q bool) (err error) {
-	b, err := GetPer(q)
+func UpdateEnv() (err error) {
+	b, err := getPer()
 	s := strings.Split(string(b), "\x00")
 	ip := s[0]
 	if len(string(ip)) > 500 {
 		err = fmt.Errorf("no 'ip=' in per blk, skipping env update")
 		return err
 	}
-	e, bootargs, err := GetEnv(q)
+	e, bootargs, err := GetEnv()
 	if err != nil {
 		return err
 	}
@@ -333,15 +322,15 @@ func UpdateEnv(q bool) (err error) {
 		return err
 	}
 	e[bootargs] = n[0] + string(ip)
-	err = PutEnv(e, q)
+	err = PutEnv(e)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetEnv(q bool) (env []string, bootargs int, err error) {
-	b, err := ReadBlk("env", q)
+func GetEnv() (env []string, bootargs int, err error) {
+	b, err := readBlk("env")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -359,7 +348,7 @@ func GetEnv(q bool) (env []string, bootargs int, err error) {
 	return e[:end], bootargs, nil
 }
 
-func PutEnv(e []string, q bool) (err error) {
+func PutEnv(e []string) (err error) {
 	ee := strings.Join(e, "\x00")
 	b := make([]byte, ENVSIZE, ENVSIZE)
 	b = []byte(ee)
@@ -372,25 +361,17 @@ func PutEnv(e []string, q bool) (err error) {
 	binary.LittleEndian.PutUint32(y, x)
 	b = append(y[0:4], b[0:ENVSIZE-ENVCRC]...)
 
-	err = WriteBlk("env", b[0:ENVSIZE], q)
+	err = writeBlk("env", b[0:ENVSIZE])
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetPer(q bool) (b []byte, err error) {
-	b, err = ReadBlk("per", q)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
+func getPer() (b []byte, err error) {
+	return ioutil.ReadFile(Machine + "-per.bin")
 }
 
-func PutPer(b []byte, q bool) (err error) {
-	err = WriteBlk("per", b, q)
-	if err != nil {
-		return err
-	}
-	return nil
+func getVer() (b []byte, err error) {
+	return ioutil.ReadFile("/boot/" + Machine + "-ver.bin")
 }

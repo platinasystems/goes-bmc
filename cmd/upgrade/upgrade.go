@@ -9,7 +9,9 @@ package upgrade
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/platinasystems/flags"
@@ -24,9 +26,11 @@ const (
 	Machine     = "platina-mk1-bmc"
 	ArchiveName = Machine + ".zip"
 	VersionName = Machine + "-ver.bin"
+	V2Name      = Machine + "-v2"
 )
 
 var command *Command
+var legacy bool
 
 type Command struct {
 	Gpio func()
@@ -71,15 +75,13 @@ OPTIONS
 	-l                display version of selected server and version
 	-r                report QSPI installed versions, QSPI booted from
 	-c                check SHA-1's of flash
-	-1                upgrade QSPI1(recovery QSPI), default is QSPI0
 	-f                force upgrade (ignore version check)`,
 	}
 }
 
 func (c *Command) Main(args ...string) error {
 	command = c
-	initQfmt()
-	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c", "-1")
+	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c")
 	parm, args := parms.New(args, "-v", "-s")
 	if len(parm.ByName["-v"]) == 0 {
 		parm.ByName["-v"] = DfltVer
@@ -112,8 +114,7 @@ func (c *Command) Main(args ...string) error {
 	}
 
 	if err := doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
-		flag.ByName["-t"], flag.ByName["-f"],
-		flag.ByName["-1"]); err != nil {
+		flag.ByName["-t"], flag.ByName["-f"]); err != nil {
 		return err
 	}
 	return nil
@@ -146,11 +147,7 @@ func reportVerServer(s string, v string, t bool) (err error) {
 }
 
 func reportVerQSPIdetail() (err error) {
-	err = printJSON(false)
-	if err != nil {
-		return err
-	}
-	err = printJSON(true)
+	err = printJSON()
 	if err != nil {
 		return err
 	}
@@ -171,18 +168,13 @@ func reportVerQSPI() (err error) {
 }
 
 func compareChecksums() (err error) {
-	if err = cmpSums(false); err != nil {
-		return err
-	}
-	if err = cmpSums(true); err != nil {
+	if err = cmpSums(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func doUpgrade(s string, v string, t bool, f bool, q bool) (err error) {
-	fmt.Print("\n")
-
+func doUpgrade(s string, v string, t bool, f bool) (err error) {
 	n, err := getFile(s, v, t, ArchiveName)
 	if err != nil {
 		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
@@ -195,8 +187,52 @@ func doUpgrade(s string, v string, t bool, f bool, q bool) (err error) {
 	}
 	defer rmFiles()
 
+	m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
+	if err != nil {
+		return fmt.Errorf("Unable to open /dev/mtd3")
+	}
+	defer m.Close()
+	buf := make([]byte, 4)
+	_, err = io.ReadAtLeast(m, buf, 4)
+	if err != nil {
+		return fmt.Errorf("Error reading /dev/mtd3")
+	}
+
+	// Check if this is a UBI volume. If not, always do legacy
+	// upgrades.
+
+	if !(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
+		legacy = true
+	} else {
+		ubiMounted := true
+		_, err = os.Stat("/sys/devices/virtual/ubi/ubi0")
+		if err != nil {
+			if os.IsNotExist(err) {
+				ubiMounted = false
+			} else {
+				return fmt.Errorf("Unexpected error %s stating ubi device\n")
+			}
+		}
+
+		_, err = os.Stat(V2Name)
+		if os.IsNotExist(err) {
+			if ubiMounted {
+				return fmt.Errorf("Can't upgrade to legacy versions with UBI attached\n")
+			}
+			legacy = true
+		} else {
+			if err != nil {
+				return fmt.Errorf("Unexpected error %s stating v2 file")
+			}
+			if !ubiMounted {
+				return fmt.Errorf("Can't upgrade to current versions without UBI attached\n")
+			}
+		}
+	}
+	fmt.Print("\n")
+
 	if !f {
-		qv, err := getVerQSPI(q)
+		qv, err := getVerQSPI()
 		if err != nil {
 			return err
 		}
@@ -231,15 +267,21 @@ func doUpgrade(s string, v string, t bool, f bool, q bool) (err error) {
 		}
 	}
 
-	selectQSPI(q)
-	if q == true {
-		fmt.Println("Upgrading QSPI1...\n")
+	perFile, err := ioutil.ReadFile("/boot/" + Machine + "-per.bin")
+	if err != nil {
+		fmt.Printf("Error reading /boot/%s-per.bin: %s\n", Machine,
+			err)
+		fmt.Println("Using default of ip=dhcp")
+		perFile = []byte("dhcp\x00")
+	}
+	err = ioutil.WriteFile(Machine+"-per.bin", perFile, 0644)
+	if err != nil {
+		return fmt.Errorf("Error creating %s-per.bin - aborting!")
 	}
 	if err = writeImageAll(); err != nil {
 		return fmt.Errorf("*** UPGRADE ERROR! ***: %v\n", err)
 	}
-	UpdateEnv(false)
-	UpdateEnv(true)
+	UpdateEnv()
 
 	return nil
 }

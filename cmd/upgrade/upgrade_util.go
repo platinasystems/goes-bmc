@@ -54,7 +54,14 @@ func getFile(s string, v string, t bool, fn string) (int, error) {
 }
 
 func rmFiles() {
-	rmFile(VersionName)
+	for _, j := range img {
+		os.Remove(Machine + "-" + j + ".bin")
+	}
+	for _, j := range legacyImg {
+		os.Remove(Machine + "-" + j + ".bin")
+	}
+	rmFile(ArchiveName)
+	rmFile(V2Name)
 	return
 }
 
@@ -113,9 +120,8 @@ func getBootedQSPI() (int, error) {
 	return -1, nil
 }
 
-func printJSON(q bool) error {
-	selectQSPI(q)
-	_, b, err := readFlash(Qfmt["ver"].off, Qfmt["ver"].siz)
+func printJSON() error {
+	b, err := getVer()
 	if err != nil {
 		return err
 	}
@@ -127,11 +133,6 @@ func printJSON(q bool) error {
 	}
 	if k > 0 {
 		fmt.Println("")
-		if q == false {
-			fmt.Println("QSPI0 Image Details")
-		} else {
-			fmt.Println("QSPI1 Image Details")
-		}
 		var ImgInfo [5]IMGINFO
 		json.Unmarshal(b[JSON_OFFSET:k+1], &ImgInfo)
 		for i, _ := range ImgInfo {
@@ -148,9 +149,8 @@ func printJSON(q bool) error {
 	return nil
 }
 
-func getVerQSPI(q bool) (string, error) {
-	selectQSPI(q)
-	_, b, err := readFlash(Qfmt["ver"].off, Qfmt["ver"].siz)
+func getVerQSPI() (string, error) {
+	b, err := getVer()
 	if err != nil {
 		return "", err
 	}
@@ -167,13 +167,9 @@ func getVerQSPI(q bool) (string, error) {
 }
 
 func getInstalledVersions() ([]string, error) {
-	iv := make([]string, 2)
+	iv := make([]string, 1)
 	var err error
-	iv[0], err = getVerQSPI(false)
-	if err != nil {
-		return nil, err
-	}
-	iv[1], err = getVerQSPI(true)
+	iv[0], err = getVerQSPI()
 	if err != nil {
 		return nil, err
 	}
@@ -253,27 +249,10 @@ func isVersionNewer(cur string, x string) (n bool, err error) {
 	return false, nil
 }
 
-func cmpSums(q bool) (err error) {
+func cmpSums() (err error) {
 	var ImgInfo [5]IMGINFO
-	if q == false {
-		fmt.Println("\nComparing checksums for QSPI0")
-	} else {
-		fmt.Println("\nComparing checksums for QSPI1")
-	}
-	if err = selectQSPI(q); err != nil {
-		return err
-	}
 
-	fd, err = syscall.Open(MTDdevice, syscall.O_RDWR, 0)
-	if err != nil {
-		err = fmt.Errorf("Open error %s: %s", MTDdevice, err)
-		return err
-	}
-	defer syscall.Close(fd)
-	if err = infoQSPI(); err != nil {
-		return err
-	}
-	_, b, err := readFlash(Qfmt["ver"].off, Qfmt["ver"].siz)
+	b, err := getVer()
 	if err != nil {
 		return err
 	}
@@ -289,7 +268,6 @@ func cmpSums(q bool) (err error) {
 		fmt.Println("Version block not found, skipping check")
 		return nil
 	}
-	syscall.Close(fd)
 
 	fd, err = syscall.Open(MTDdevice, syscall.O_RDWR, 0)
 	if err != nil {
@@ -298,28 +276,35 @@ func cmpSums(q bool) (err error) {
 	}
 	defer syscall.Close(fd)
 	var calcSums [5]string
-	for i, j := range img {
-		if j == "ubo" || j == "dtb" || j == "ker" || j == "ini" {
-			nn, bb, err := readQSPI(Qfmt[j].off, Qfmt[j].siz)
-			if err != nil {
-				err = fmt.Errorf("Read error: %s %v",
-					"ubo", err)
-				return err
-			}
-			if nn != int(Qfmt[j].siz) {
-				err = fmt.Errorf("Size error %v!=%v: %s %v",
-					0, 0, 0, err)
-				return err
-			}
-			l, err := strconv.Atoi(ImgInfo[i].Size)
-			if err != nil {
-				return err
-			}
-			h := sha1.New()
-			io.WriteString(h, string(bb[0:l]))
-			calcSums[i] = fmt.Sprintf("%x", h.Sum(nil))
-		}
+	nn, bb, err := readQSPI(0x0, 0xc0000)
+	if err != nil {
+		err = fmt.Errorf("Read error: %s %v",
+			"ubo", err)
+		return err
 	}
+	if nn != int(0xc0000) {
+		return fmt.Errorf("Size error expecting %x got %x",
+			0xc0000, nn)
+	}
+	l, err := strconv.Atoi(ImgInfo[0].Size)
+	if err != nil {
+		return err
+	}
+	h := sha1.New()
+	io.WriteString(h, string(bb[0:l]))
+	calcSums[0] = fmt.Sprintf("%x", h.Sum(nil))
+
+	bb, err = ioutil.ReadFile("/boot/" + Machine + "-itb.bin")
+	if err != nil {
+		return fmt.Errorf("Error reading itb: %s", err)
+	}
+	l, err = strconv.Atoi(ImgInfo[4].Size)
+	if err != nil {
+		return err
+	}
+	h = sha1.New()
+	io.WriteString(h, string(bb[0:l]))
+	calcSums[4] = fmt.Sprintf("%x", h.Sum(nil))
 
 	chkFail := false
 	for i, _ := range ImgInfo {
