@@ -29,6 +29,7 @@ import (
 	"github.com/platinasystems/goes/cmd/cmdline"
 	"github.com/platinasystems/goes/cmd/cp"
 	"github.com/platinasystems/goes/cmd/daemons"
+	"github.com/platinasystems/goes/cmd/dhcpcd"
 	"github.com/platinasystems/goes/cmd/dmesg"
 	"github.com/platinasystems/goes/cmd/echo"
 	eepromcmd "github.com/platinasystems/goes/cmd/eeprom"
@@ -115,6 +116,7 @@ var Goes = &goes.Goes{
 		"cli":     &cli.Command{},
 		"cp":      cp.Command{},
 		"daemons": daemons.Admin,
+		"dhcpcd":  &dhcpcd.Command{},
 		"diag": &diag.Command{
 			Gpio: gpioInit,
 		},
