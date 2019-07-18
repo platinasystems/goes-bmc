@@ -15,6 +15,8 @@ func gpioInit() {
 
 	t := fdt.DefaultTree()
 
-	t.MatchNode("aliases", GatherAliases)
-	t.EachProperty("gpio-controller", "", GatherPins)
+	if t != nil {
+		t.MatchNode("aliases", GatherAliases)
+		t.EachProperty("gpio-controller", "", GatherPins)
+	}
 }
