@@ -6,7 +6,6 @@ package ipcfg
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -65,19 +64,11 @@ func (c *Command) Main(args ...string) (err error) {
 		return
 	} else {
 		s := parm.ByName["-ip"]
-		n := "(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
-		r := n + "\\." + n + "\\." + n + "\\." + n + "::eth0:on"
-		x := regexp.MustCompile(r)
-		if parm.ByName["-ip"] == "dhcp" || x.MatchString(s) {
-			if err = updateIP(s, false); err != nil {
-				fmt.Println(err)
-			}
-			if err = updateIP(s, true); err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			err = fmt.Errorf("invalid ip string")
-			return err
+		if err = updateIP(s, false); err != nil {
+			fmt.Println(err)
+		}
+		if err = updateIP(s, true); err != nil {
+			fmt.Println(err)
 		}
 	}
 	return nil
