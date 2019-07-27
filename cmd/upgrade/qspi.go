@@ -132,7 +132,7 @@ func writeImageAll() (err error) {
 		return err
 	}
 	for _, j := range img {
-		if err := writeImageVerify("/"+Machine+"-"+j+".bin",
+		if err := writeImageVerify(Machine+"-"+j+".bin",
 			Qfmt[j].off, Qfmt[j].siz, true); err != nil {
 			return err
 		}
