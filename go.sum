@@ -42,8 +42,8 @@ github.com/platinasystems/flags v1.0.0 h1:M+WtvQjx+ta36d908PDVUvamKnJR2ZXYkUx7OM
 github.com/platinasystems/flags v1.0.0/go.mod h1:3t8RybiABfJKBne5suYmfXoKOAK6bnMqr++fqaQ2V9M=
 github.com/platinasystems/go-redis-server v0.0.0-20181030193423-fcb8fa742b73 h1:8DVy1rcSWTnJt248DAD0JzeASS3j8Ljg+rCoKPHW5Qo=
 github.com/platinasystems/go-redis-server v0.0.0-20181030193423-fcb8fa742b73/go.mod h1:/GXF5FQty+9BTtfCsfFuD4/pHf/b2cN3f3Ic0nLagQw=
-github.com/platinasystems/goes v1.11.0 h1:G6ZCkKPmt0i1Ek4Fnn2HMwU4jnCHD6S7FqeSalYKgVs=
-github.com/platinasystems/goes v1.11.0/go.mod h1:LAMOifZ4Gs2q3lQ0uuhgSkyXZt/RhlBC4YgkyCITHeY=
+github.com/platinasystems/goes v1.11.1 h1:cAMS4T6I3cKZvHg3MA5AbEUVBAZ5MTJpxQfWWw3UZi4=
+github.com/platinasystems/goes v1.11.1/go.mod h1:LAMOifZ4Gs2q3lQ0uuhgSkyXZt/RhlBC4YgkyCITHeY=
 github.com/platinasystems/gpio v0.0.0-20181120172958-aa9a44e83566/go.mod h1:UsR1pB6U/S7Ql6RDrF/S6rMJqWOiZu3H2mKQeEe4v7U=
 github.com/platinasystems/gpio v1.1.0 h1:H11bipyT6tv1NSTZhrwVyttroKHYFyTnb2uPfoK7fHg=
 github.com/platinasystems/gpio v1.1.0/go.mod h1:UsR1pB6U/S7Ql6RDrF/S6rMJqWOiZu3H2mKQeEe4v7U=
