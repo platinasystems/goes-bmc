@@ -243,7 +243,9 @@ var Goes = &goes.Goes{
 		"sshd":   &sshd.Command{FailSafe: false},
 		"start": &start.Command{
 			ConfGpioHook: startConfGpioHook,
-			Gettys:       []string{"/dev/ttymxc0"},
+			Gettys: []start.TtyCon{
+				{Tty: "/dev/ttymxc0", Baud: 115200},
+			},
 		},
 		"stop":      &stop.Command{},
 		"stty":      stty.Command{},
