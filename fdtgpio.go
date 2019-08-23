@@ -5,7 +5,7 @@
 package main
 
 import (
-	"strconv"
+	"fmt"
 	"strings"
 
 	"github.com/platinasystems/fdt"
@@ -26,18 +26,11 @@ func GatherAliases(n *fdt.Node) {
 // Build map of gpio pins for this gpio controller
 func GatherPins(n *fdt.Node, name string, value string) {
 	var pn []string
-	var mode string
-
-	buildPinMap := func(name, mode, bank, index string) {
-		i, _ := strconv.Atoi(index)
-		gpio.Pins[name] = gpio.GpioPinMode[mode] |
-			gpio.GpioBankToBase[bank] |
-			gpio.Pin(i)
-	}
 
 	for na, al := range gpio.Aliases {
 		if al == n.Name {
 			for _, c := range n.Children {
+				mode := ""
 				for p, _ := range c.Properties {
 					switch p {
 					case "gpio-pin-desc":
@@ -46,10 +39,11 @@ func GatherPins(n *fdt.Node, name string, value string) {
 						mode = p
 					}
 				}
-				if mode != "" {
-					buildPinMap(pn[0], mode, na, pn[1])
+				err := gpio.NewPin(pn[0], mode, na, pn[1])
+				if err != nil {
+					fmt.Printf("Error setting %s to %s: %s\n",
+						pn[0], mode, err)
 				}
-				mode = ""
 			}
 		}
 	}

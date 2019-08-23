@@ -58,7 +58,7 @@ DESCRIPTION
 	}
 }
 
-func selectQSPI(pin gpio.Pin, q bool) error {
+func selectQSPI(pin *gpio.Pin, q bool) error {
 	//i2c STOP
 	sd[0] = 0
 	j[0] = I{true, i2c.Write, 0, 0, sd, int(0x99), int(1), 0}
