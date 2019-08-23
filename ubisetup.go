@@ -104,8 +104,16 @@ func ubiSetup() (err error) {
 	if found {
 		r, _ := pin.Value()
 		qs := 0
+		dir := "low"
 		if r {
 			qs = 1
+			dir = "high"
+		}
+		err = pin.SetDirection(dir)
+		if err != nil {
+			fmt.Printf("Error setting QSPI_MUX_SEL output: %s\n",
+				err)
+			return
 		}
 		fmt.Printf("Booted from QSPI%d\n", qs)
 	} else {
