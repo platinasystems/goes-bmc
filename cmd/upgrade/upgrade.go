@@ -81,7 +81,7 @@ OPTIONS
 
 func (c *Command) Main(args ...string) error {
 	command = c
-	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c")
+	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c", "-legacy")
 	parm, args := parms.New(args, "-v", "-s")
 	if len(parm.ByName["-v"]) == 0 {
 		parm.ByName["-v"] = DfltVer
@@ -114,7 +114,7 @@ func (c *Command) Main(args ...string) error {
 	}
 
 	if err := doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
-		flag.ByName["-t"], flag.ByName["-f"]); err != nil {
+		flag.ByName["-t"], flag.ByName["-f"], flag.ByName["-legacy"]); err != nil {
 		return err
 	}
 	return nil
@@ -174,7 +174,7 @@ func compareChecksums() (err error) {
 	return nil
 }
 
-func doUpgrade(s string, v string, t bool, f bool) (err error) {
+func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 	n, err := getFile(s, v, t, ArchiveName)
 	if err != nil {
 		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
@@ -198,10 +198,11 @@ func doUpgrade(s string, v string, t bool, f bool) (err error) {
 		return fmt.Errorf("Error reading /dev/mtd3")
 	}
 
-	// Check if this is a UBI volume. If not, always do legacy
-	// upgrades.
+	// If forced legacy, do that. Otherwise check if this is a UBI
+	// volume. If not, always do legacy upgrades.
 
-	if !(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
+	if l ||
+		!(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
 		legacy = true
 	} else {
 		ubiMounted := true
@@ -215,7 +216,7 @@ func doUpgrade(s string, v string, t bool, f bool) (err error) {
 		}
 
 		_, err = os.Stat(V2Name)
-		if os.IsNotExist(err) {
+		if l || os.IsNotExist(err) {
 			if ubiMounted {
 				return fmt.Errorf("Can't upgrade to legacy versions with UBI attached\n")
 			}
