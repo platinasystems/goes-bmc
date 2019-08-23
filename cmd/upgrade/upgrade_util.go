@@ -152,7 +152,7 @@ func printJSON() error {
 func getVerQSPI() (string, error) {
 	b, err := getVer()
 	if err != nil {
-		return "", err
+		return "00000000", nil
 	}
 	qv := string(b[VERSION_OFFSET:VERSION_LEN])
 	if string(b[VERSION_OFFSET:VERSION_DEV]) == "dev" {
