@@ -139,6 +139,11 @@ func writeImageAll() (err error) {
 				return fmt.Errorf("Error reading %s: %s\n", src, err)
 			}
 			dst := "/boot/" + src
+			err = os.Remove(dst)
+			if err != nil {
+				fmt.Printf("Error removing %s: %s\n",
+					src, err)
+			}
 			err = ioutil.WriteFile(dst, s, 0644)
 			if err != nil {
 				return fmt.Errorf("Error writing %s: %s\n", dst, err)
