@@ -6,16 +6,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"syscall"
 	"time"
 
-	//"github.com/platinasystems/goes/cmd/platina/mk1/bmc/upgrade"
 	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/log"
 	"github.com/platinasystems/redis"
-	"github.com/platinasystems/redis/publisher"
 )
 
 const (
@@ -69,90 +64,5 @@ func startConfGpioHook() error {
 			pin.SetValue(false)
 		}
 	}
-	if err := pubEth0(); err != nil {
-		return err
-	}
-	//upgrade.UpdateEnv(false)
-	//upgrade.UpdateEnv(true)
-	return nil
-}
-
-func pubEth0() (err error) {
-	var event syscall.EpollEvent
-	var events [MaxEpollEvents]syscall.EpollEvent
-	var buf [KB]byte
-
-	f, err := os.Open("/dev/kmsg")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	fd := int(f.Fd())
-	if err = syscall.SetNonblock(fd, true); err != nil {
-		return err
-	}
-	epfd, err := syscall.EpollCreate1(0)
-	if err != nil {
-		return err
-	}
-	defer syscall.Close(epfd)
-
-	event.Events = syscall.EPOLLIN
-	event.Fd = int32(fd)
-	err = syscall.EpollCtl(epfd, syscall.EPOLL_CTL_ADD, fd, &event)
-	if err != nil {
-		return err
-	}
-	nevents, err := syscall.EpollWait(epfd, events[:], -1)
-	if err != nil {
-		return err
-	}
-	for ev := 0; ev < nevents; ev++ {
-		for {
-			nbytes, err := syscall.Read(int(events[ev].Fd), buf[:])
-			if nbytes > 0 {
-				x := string(buf[:nbytes])
-				if strings.Contains(x, "init.redisd") {
-					if strings.Contains(x, "eth0") {
-						er := pubAddr(x)
-						if er != nil {
-							return er
-						}
-					}
-				}
-			}
-			if err != nil {
-				break
-			}
-		}
-	}
-	return nil
-}
-
-func pubAddr(s string) (err error) {
-	ip := strings.SplitAfter(s, "[")
-	i := ip[2]
-	ip = strings.Split(i, "%")
-	if strings.Contains(s, "::") {
-		err = pubKey("eth0.ipv6", ip[0])
-		if err != nil {
-			return err
-		}
-	} else {
-		err = pubKey("eth0.ipv4", ip[0])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func pubKey(k string, v interface{}) (err error) {
-	var pub *publisher.Publisher
-	if pub, err = publisher.New(); err != nil {
-		return err
-	}
-	pub.Print(k, ": ", v)
 	return nil
 }
