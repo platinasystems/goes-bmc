@@ -95,6 +95,7 @@ import (
 	"github.com/platinasystems/goes/cmd/ubi"
 	"github.com/platinasystems/goes/cmd/umount"
 	"github.com/platinasystems/goes/cmd/uninstall"
+	"github.com/platinasystems/goes/cmd/uptime"
 	"github.com/platinasystems/goes/cmd/uptimed"
 	"github.com/platinasystems/goes/cmd/version"
 	"github.com/platinasystems/goes/cmd/w83795d"
@@ -269,6 +270,7 @@ var Goes = &goes.Goes{
 			Gpio: gpioInit,
 		},
 		"upgraded": &upgraded.Command{},
+		"uptime":   uptime.Command{},
 		"uptimed":  uptimed.Command(make(chan struct{})),
 		"w83795d": &w83795d.Command{
 			Init: w83795dInit,
