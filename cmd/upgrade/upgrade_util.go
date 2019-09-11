@@ -106,21 +106,13 @@ func unzip() error {
 	return nil
 }
 
-func getBootedQSPI() (int, error) {
-	dat, err := ioutil.ReadFile("/tmp/qspi")
-	if err != nil {
-		return -1, err
-	}
-	if strings.Contains(string(dat), "QSPI0") {
-		return 0, nil
-	}
-	if strings.Contains(string(dat), "QSPI1") {
-		return 1, nil
-	}
-	return -1, nil
-}
-
 func printJSON() error {
+	iv, err := getVerQSPI()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Installed version is %s\n\n", iv)
 	b, err := getVer()
 	if err != nil {
 		return err
@@ -166,16 +158,6 @@ func getVerQSPI() (string, error) {
 	return qv, nil
 }
 
-func getInstalledVersions() ([]string, error) {
-	iv := make([]string, 1)
-	var err error
-	iv[0], err = getVerQSPI()
-	if err != nil {
-		return nil, err
-	}
-	return iv, nil
-}
-
 func getServerVersion(s string, v string, t bool) (string, error) {
 	n, err := getFile(s, v, t, ArchiveName)
 	if err != nil {
@@ -205,23 +187,6 @@ func printVerServer(s string, v string, sv string) {
 	fmt.Printf("    Requested server  : %s\n", s)
 	fmt.Printf("    Requested version : %s\n", v)
 	fmt.Printf("    Found version     : %s\n", sv)
-	fmt.Print("\n")
-}
-
-func printVerQSPI(iv []string, qspi int) {
-	fmt.Print("\n")
-	fmt.Print("Installed versions in QSPI flash:\n")
-	if qspi == 0 {
-		fmt.Printf("  * QSPI0 version: %s\n", iv[0])
-		fmt.Printf("    QSPI1 version: %s\n", iv[1])
-		fmt.Print("\n")
-		fmt.Print("Booted from QSPI0\n")
-	} else {
-		fmt.Printf("    QSPI0 version: %s\n", iv[0])
-		fmt.Printf("  * QSPI1 version: %s\n", iv[1])
-		fmt.Print("\n")
-		fmt.Print("Booted from QSPI1\n")
-	}
 	fmt.Print("\n")
 }
 

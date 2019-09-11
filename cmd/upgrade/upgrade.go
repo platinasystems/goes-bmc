@@ -99,9 +99,6 @@ func (c *Command) Main(args ...string) error {
 		if err := reportVerQSPIdetail(); err != nil {
 			return err
 		}
-		if err := reportVerQSPI(); err != nil {
-			return err
-		}
 		return nil
 	}
 	if flag.ByName["-c"] {
@@ -149,19 +146,6 @@ func reportVerQSPIdetail() (err error) {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func reportVerQSPI() (err error) {
-	iv, err := getInstalledVersions()
-	if err != nil {
-		return err
-	}
-	q, err := getBootedQSPI()
-	if err != nil {
-		return err
-	}
-	printVerQSPI(iv, q)
 	return nil
 }
 
