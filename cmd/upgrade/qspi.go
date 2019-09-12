@@ -306,7 +306,7 @@ func eraseQSPI(of uint32, sz uint32) error {
 }
 
 func UpdateEnv() (err error) {
-	b, err := getPer()
+	b, err := getPerFile()
 	s := strings.Split(string(b), "\x00")
 	ip := s[0]
 	if len(string(ip)) > 500 {
@@ -371,12 +371,4 @@ func PutEnv(e []string) (err error) {
 		return err
 	}
 	return nil
-}
-
-func getPer() (b []byte, err error) {
-	return ioutil.ReadFile(Machine + "-per.bin")
-}
-
-func getVer() (b []byte, err error) {
-	return ioutil.ReadFile("/boot/" + Machine + "-ver.bin")
 }

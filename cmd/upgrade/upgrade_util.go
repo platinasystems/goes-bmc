@@ -113,7 +113,7 @@ func printJSON() error {
 	}
 
 	fmt.Printf("Installed version is %s\n\n", iv)
-	b, err := getVer()
+	b, err := getVerFile()
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func printJSON() error {
 }
 
 func GetVerArchiveFile() (string, error) {
-	b, err := getVer()
+	b, err := getVerFile()
 	if err != nil {
 		return "00000000", nil
 	}
@@ -217,7 +217,7 @@ func isVersionNewer(cur string, x string) (n bool, err error) {
 func cmpSums() (err error) {
 	var ImgInfo [5]IMGINFO
 
-	b, err := getVer()
+	b, err := getVerFile()
 	if err != nil {
 		return err
 	}
@@ -282,4 +282,12 @@ func cmpSums() (err error) {
 		fmt.Println("Checksums match.")
 	}
 	return nil
+}
+
+func getPerFile() (b []byte, err error) {
+	return ioutil.ReadFile(Machine + "-per.bin")
+}
+
+func getVerFile() (b []byte, err error) {
+	return ioutil.ReadFile("/boot/" + Machine + "-ver.bin")
 }
