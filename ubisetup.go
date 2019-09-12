@@ -121,23 +121,14 @@ func ubiSetup() (err error) {
 		return
 	}
 
-	m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
-	if err != nil {
-		fmt.Printf("Unable to open /dev/mtd3")
-		return
-	}
-	defer m.Close()
-	buf := make([]byte, 4)
-	_, err = io.ReadAtLeast(m, buf, 4)
-	if err != nil {
-		fmt.Printf("Error reading /dev/mtd3")
-		return
-	}
-
 	// Check if this is a UBI volume. If not, we need to convert it,
 	// so stash the itb, per, and ver partitions.
 
-	if !(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
+	isUbi, err := ubi.IsUbi(3)
+	if err != nil {
+		return err
+	}
+	if !isUbi {
 		if _, err := os.Stat("/boot"); os.IsNotExist(err) {
 			err = os.Mkdir("/boot", 0644)
 			if err != nil {
@@ -193,6 +184,10 @@ func ubiSetup() (err error) {
 			return err
 		}
 
+		m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
+		if err != nil {
+			return fmt.Errorf("Unable to open /dev/mtd3: %s", err)
+		}
 		mi := &MTDinfo{}
 		_, _, e := syscall.Syscall(syscall.SYS_IOCTL, m.Fd(),
 			uintptr(MEMGETINFO), uintptr(unsafe.Pointer(mi)))

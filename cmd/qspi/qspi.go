@@ -268,22 +268,14 @@ func (c Command) Main(args ...string) error {
 
 		if flag.ByName["-mount"] {
 
-			m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
-			if err != nil {
-				return fmt.Errorf("Unable to open /dev/mtd3: %s",
-					err)
-			}
-			defer m.Close()
-			buf := make([]byte, 4)
-			_, err = io.ReadAtLeast(m, buf, 4)
-			if err != nil {
-				return fmt.Errorf("Error reading /dev/mtd3: %s",
-					err)
-			}
 			// Check if this is a UBI volume. If not, do not
 			// attempt to attach it.
 
-			if !(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
+			isUbi, err := ubi.IsUbi(3)
+			if err != nil {
+				return err
+			}
+			if !isUbi {
 				return fmt.Errorf("Not a UBI partition, can't attach")
 			}
 

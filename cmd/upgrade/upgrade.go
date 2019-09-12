@@ -9,7 +9,6 @@ package upgrade
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -17,6 +16,7 @@ import (
 	"github.com/platinasystems/flags"
 	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/parms"
+	"github.com/platinasystems/ubi"
 )
 
 const (
@@ -185,22 +185,13 @@ func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 	}
 	defer rmFiles()
 
-	m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
-	if err != nil {
-		return fmt.Errorf("Unable to open /dev/mtd3")
-	}
-	defer m.Close()
-	buf := make([]byte, 4)
-	_, err = io.ReadAtLeast(m, buf, 4)
-	if err != nil {
-		return fmt.Errorf("Error reading /dev/mtd3")
-	}
-
 	// If forced legacy, do that. Otherwise check if this is a UBI
 	// volume. If not, always do legacy upgrades.
-
-	if l ||
-		!(buf[0] == 'U' && buf[1] == 'B' && buf[2] == 'I' && buf[3] == '#') {
+	isUbi, err := ubi.IsUbi(3)
+	if err != nil {
+		return err
+	}
+	if l || !isUbi {
 		legacy = true
 	} else {
 		ubiMounted := true
