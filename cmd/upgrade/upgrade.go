@@ -29,7 +29,6 @@ const (
 	V2Name      = Machine + "-v2"
 )
 
-var command *Command
 var legacy bool
 
 type Command struct {
@@ -73,14 +72,13 @@ OPTIONS
 	-s [SERVER[/dir]] IP4 or URL, default downloads.platinasystems.com 
 	-t                use TFTP instead of HTTP
 	-l                display version of selected server and version
-	-r                report QSPI installed versions, QSPI booted from
+	-r                report QSPI installed version
 	-c                check SHA-1's of flash
 	-f                force upgrade (ignore version check)`,
 	}
 }
 
 func (c *Command) Main(args ...string) error {
-	command = c
 	flag, args := flags.New(args, "-t", "-l", "-f", "-r", "-c", "-legacy")
 	parm, args := parms.New(args, "-v", "-s")
 	if len(parm.ByName["-v"]) == 0 {
