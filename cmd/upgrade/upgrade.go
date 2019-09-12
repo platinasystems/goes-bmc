@@ -183,15 +183,11 @@ func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err err
 	if !isUbi {
 		legacy = true
 	} else {
-		_, err = os.Stat("/sys/devices/virtual/ubi/ubi0")
-		if err == nil {
+		ubiAttached, err = ubi.IsUbiAttached(0)
+		if err != nil {
 			ubiAttached = true
 		} else {
-			if os.IsNotExist(err) {
-				ubiAttached = false
-			} else {
-				return fmt.Errorf("Unexpected error %s stating ubi device\n")
-			}
+			return err
 		}
 
 		_, err = os.Stat(V2Name)
