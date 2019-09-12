@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/platinasystems/flags"
+	"github.com/platinasystems/goes"
 	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/parms"
 	"github.com/platinasystems/ubi"
@@ -34,7 +35,10 @@ var legacy bool
 type Command struct {
 	Gpio func()
 	gpio sync.Once
+	g    *goes.Goes
 }
+
+func (c *Command) Goes(g *goes.Goes) { c.g = g }
 
 func (*Command) String() string { return "upgrade" }
 
@@ -108,7 +112,7 @@ func (c *Command) Main(args ...string) error {
 		return nil
 	}
 
-	if err := doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
+	if err := c.doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
 		flag.ByName["-t"], flag.ByName["-f"], flag.ByName["-legacy"]); err != nil {
 		return err
 	}
@@ -156,7 +160,7 @@ func compareChecksums() (err error) {
 	return nil
 }
 
-func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
+func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 	n, err := getFile(s, v, t, ArchiveName)
 	if err != nil {
 		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
@@ -171,18 +175,20 @@ func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 
 	// If forced legacy, do that. Otherwise check if this is a UBI
 	// volume. If not, always do legacy upgrades.
+	ubiAttached := false
 	isUbi, err := ubi.IsUbi(3)
 	if err != nil {
 		return err
 	}
-	if l || !isUbi {
+	if !isUbi {
 		legacy = true
 	} else {
-		ubiMounted := true
 		_, err = os.Stat("/sys/devices/virtual/ubi/ubi0")
-		if err != nil {
+		if err == nil {
+			ubiAttached = true
+		} else {
 			if os.IsNotExist(err) {
-				ubiMounted = false
+				ubiAttached = false
 			} else {
 				return fmt.Errorf("Unexpected error %s stating ubi device\n")
 			}
@@ -190,15 +196,17 @@ func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 
 		_, err = os.Stat(V2Name)
 		if l || os.IsNotExist(err) {
-			if ubiMounted {
-				return fmt.Errorf("Can't upgrade to legacy versions with UBI attached\n")
+			if ubiAttached {
+				if !l {
+					return fmt.Errorf("Can't upgrade to legacy versions with UBI attached\n")
+				}
 			}
 			legacy = true
 		} else {
 			if err != nil {
 				return fmt.Errorf("Unexpected error %s stating v2 file")
 			}
-			if !ubiMounted {
+			if !ubiAttached {
 				return fmt.Errorf("Can't upgrade to current versions without UBI attached\n")
 			}
 		}
@@ -252,6 +260,19 @@ func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 	if err != nil {
 		return fmt.Errorf("Error creating %s-per.bin - aborting!")
 	}
+
+	// If we are explicitly forcing legacy, and downgrading from UBI
+	// to pre-UBI, we must unmount/detach for the user here. This is
+	// because the UBI has to be attached for version checks, etc
+	// to work correcly and so the user has to keep things mounted,
+	// but we do the unmount just before we program the image.
+	if ubiAttached && l {
+		err = c.g.Main("qspi", "-unmount")
+		if err != nil {
+			return fmt.Errorf("Error unmounting UBI for legacy downgrade", err)
+		}
+	}
+
 	if err = writeImageAll(); err != nil {
 		return fmt.Errorf("*** UPGRADE ERROR! ***: %v\n", err)
 	}
