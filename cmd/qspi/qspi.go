@@ -158,12 +158,22 @@ func copyRecurse(src, dst string, overwrite bool) (err error) {
 }
 
 func (c Command) Main(args ...string) error {
-	flag, args := flags.New(args, "-unmount", "-mount", "-update")
-
 	pin, found := gpio.Pins["QSPI_MUX_SEL"]
 	if !found {
 		return fmt.Errorf("Can't find QSPI_MUX_SEL")
 	}
+	sel := 0
+	r, _ := pin.Value()
+	if r {
+		sel = 1
+	}
+
+	if len(args) == 0 {
+		fmt.Printf("QSPI%d is selected\n", sel)
+		return nil
+	}
+
+	flag, args := flags.New(args, "-unmount", "-mount", "-update")
 
 	if len(args) > 0 {
 		sel, err := strconv.Atoi(args[0])
@@ -177,138 +187,135 @@ func (c Command) Main(args ...string) error {
 		if sel < 0 || sel > 1 {
 			return fmt.Errorf("Invalid unit number %d", sel)
 		}
+	}
+	mounts := []struct {
+		mp     string
+		dev    string
+		fstype string
+		flags  uintptr
+	}{
+		{"/boot", "/perm/boot", "", syscall.MS_BIND},
+		{"/etc", "/perm/etc", "", syscall.MS_BIND},
+		{"/perm", "/dev/ubi0_0", "ubifs", 0},
+	}
 
-		mounts := []struct {
-			mp     string
-			dev    string
-			fstype string
-			flags  uintptr
-		}{
-			{"/boot", "/perm/boot", "", syscall.MS_BIND},
-			{"/etc", "/perm/etc", "", syscall.MS_BIND},
-			{"/perm", "/dev/ubi0_0", "ubifs", 0},
+	umount := false
+	for _, mount := range mounts {
+		dev, err := findMount(mount.mp)
+		if err != nil {
+			return fmt.Errorf("Error finding %s mountpoint: %s",
+				mount.mp, err)
 		}
-		umount := false
+		if dev == "" {
+			continue
+		}
+		if !flag.ByName["-unmount"] {
+			return fmt.Errorf("Can't switch QSPI with %s mounted, use -unmount",
+				mount.mp)
+		}
+		umount = true
+	}
+
+	detach := false
+	_, err := os.Stat("/sys/devices/virtual/ubi/ubi0")
+	if err == nil {
+		if !flag.ByName["-unmount"] {
+			return fmt.Errorf("Can't switch QSPI with UBI attached, use -unmount")
+		} else {
+			detach = true
+		}
+	} else {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("Unexpected error %s stating ubi device",
+				err)
+		} else {
+			if umount {
+				return fmt.Errorf("Mounted but not attached, aborting!")
+			}
+		}
+	}
+
+	err = copyRecurse("/boot", "/volatile/boot", true)
+	if err != nil {
+		return fmt.Errorf("Error copying /boot to /volatile/boot: %s",
+			err)
+	}
+	err = copyRecurse("/etc", "/volatile/etc", true)
+	if err != nil {
+		return fmt.Errorf("Error copying /etc to /volatile/etc: %s",
+			err)
+	}
+
+	if umount {
 		for _, mount := range mounts {
 			dev, err := findMount(mount.mp)
 			if err != nil {
-				return fmt.Errorf("Error finding %s mountpoint: %s",
+				return fmt.Errorf("Error re-finding %s mountpoint: %s",
 					mount.mp, err)
 			}
 			if dev == "" {
 				continue
 			}
-			if !flag.ByName["-unmount"] {
-				return fmt.Errorf("Can't switch QSPI with %s mounted, use -unmount",
-					mount.mp)
-			}
-			umount = true
-		}
-
-		detach := false
-		_, err = os.Stat("/sys/devices/virtual/ubi/ubi0")
-		if err == nil {
-			if !flag.ByName["-unmount"] {
-				return fmt.Errorf("Can't switch QSPI with UBI attached, use -unmount")
-			} else {
-				detach = true
-			}
-		} else {
-			if !os.IsNotExist(err) {
-				return fmt.Errorf("Unexpected error %s stating ubi device",
-					err)
-			} else {
-				if umount {
-					return fmt.Errorf("Mounted but not attached, aborting!")
-
-				}
-			}
-		}
-
-		err = copyRecurse("/boot", "/volatile/boot", true)
-		if err != nil {
-			return fmt.Errorf("Error copying /boot to /volatile/boot: %s",
-				err)
-		}
-		err = copyRecurse("/etc", "/volatile/etc", true)
-		if err != nil {
-			return fmt.Errorf("Error copying /etc to /volatile/etc: %s",
-				err)
-		}
-
-		if umount {
-			for _, mount := range mounts {
-				dev, err := findMount(mount.mp)
-				if err != nil {
-					return fmt.Errorf("Error re-finding %s mountpoint: %s",
-						mount.mp, err)
-				}
-				if dev == "" {
-					continue
-				}
-				if err := syscall.Unmount(mount.mp, 0); err != nil {
-					return fmt.Errorf("Error unmounting %s: %s",
-						mount.mp, err)
-				}
-			}
-		}
-
-		if detach {
-			err := ubi.Detach(0)
-			if err != nil {
-				return fmt.Errorf("Error in ubidetach: %s",
-					err)
-			}
-		}
-		err = selectQSPI(pin, sel != 0)
-		if err != nil {
-			return fmt.Errorf("Error in selectQSPI: %s\n",
-				err)
-		}
-
-		if flag.ByName["-mount"] {
-
-			// Check if this is a UBI volume. If not, do not
-			// attempt to attach it.
-
-			isUbi, err := ubi.IsUbi(3)
-			if err != nil {
-				return err
-			}
-			if !isUbi {
-				return fmt.Errorf("Not a UBI partition, can't attach")
-			}
-
-			err = ubi.Attach(0, 3, 0, 0) // MTD3 is the UBI partition
-			if err != nil {
-				return fmt.Errorf("Error in ubiattach: %s",
-					err)
-			}
-
-			for i := len(mounts); i > 0; i-- {
-				mount := mounts[i-1]
-				if err := syscall.Mount(mount.dev, mount.mp,
-					mount.fstype, mount.flags, ""); err != nil {
-					return fmt.Errorf("Error mounting %s: %s",
-						mount.mp, err)
-				}
-			}
-			if flag.ByName["-update"] {
-				err = copyRecurse("/volatile/boot", "/perm/boot", true)
-				if err != nil {
-					return fmt.Errorf("Error copying /volatile/boot to /perm/boot: %s",
-						err)
-				}
-				err = copyRecurse("/volatile/etc", "/perm/etc", true)
-				if err != nil {
-					return fmt.Errorf("Error copying /volatile/etc to /perm/etc: %s",
-						err)
-				}
+			if err := syscall.Unmount(mount.mp, 0); err != nil {
+				return fmt.Errorf("Error unmounting %s: %s",
+					mount.mp, err)
 			}
 		}
 	}
 
-	r, _ := pin.Value()
+	if detach {
+		err := ubi.Detach(0)
+		if err != nil {
+			return fmt.Errorf("Error in ubidetach: %s",
+				err)
+		}
+	}
+	err = selectQSPI(pin, sel != 0)
+	if err != nil {
+		return fmt.Errorf("Error in selectQSPI: %s\n",
+			err)
+	}
+
+	if flag.ByName["-mount"] {
+		// Check if this is a UBI volume. If not, do not
+		// attempt to attach it.
+		isUbi, err := ubi.IsUbi(3)
+		if err != nil {
+			return err
+		}
+		if !isUbi {
+			return fmt.Errorf("Not a UBI partition, can't attach")
+		}
+
+		err = ubi.Attach(0, 3, 0, 0) // MTD3 is the UBI partition
+		if err != nil {
+			return fmt.Errorf("Error in ubiattach: %s",
+				err)
+		}
+
+		for i := len(mounts); i > 0; i-- {
+			mount := mounts[i-1]
+			if err := syscall.Mount(mount.dev, mount.mp,
+				mount.fstype, mount.flags, ""); err != nil {
+				return fmt.Errorf("Error mounting %s: %s",
+					mount.mp, err)
+			}
+		}
+		if flag.ByName["-update"] {
+			err = copyRecurse("/volatile/boot", "/perm/boot", true)
+			if err != nil {
+				return fmt.Errorf("Error copying /volatile/boot to /perm/boot: %s",
+					err)
+			}
+			err = copyRecurse("/volatile/etc", "/perm/etc", true)
+			if err != nil {
+				return fmt.Errorf("Error copying /volatile/etc to /perm/etc: %s",
+					err)
+			}
+		}
+	}
+
+	r, _ = pin.Value()
 	qspi := 0
 	if r {
 		qspi = 1
