@@ -206,7 +206,7 @@ func doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
 	fmt.Print("\n")
 
 	if !f {
-		qv, err := getVerQSPI()
+		qv, err := GetVerArchiveFile()
 		if err != nil {
 			return err
 		}

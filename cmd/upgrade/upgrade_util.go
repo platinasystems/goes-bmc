@@ -107,7 +107,7 @@ func unzip() error {
 }
 
 func printJSON() error {
-	iv, err := getVerQSPI()
+	iv, err := GetVerArchiveFile()
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func printJSON() error {
 	return nil
 }
 
-func getVerQSPI() (string, error) {
+func GetVerArchiveFile() (string, error) {
 	b, err := getVer()
 	if err != nil {
 		return "00000000", nil
