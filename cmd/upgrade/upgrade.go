@@ -201,7 +201,7 @@ func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bo
 	}
 
 	if !f {
-		qv, err := GetVerArchiveFile()
+		qv, err := GetVerArchive()
 		if err != nil {
 			return err
 		}

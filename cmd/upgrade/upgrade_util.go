@@ -17,6 +17,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/platinasystems/ubi"
 	"github.com/platinasystems/url"
 )
 
@@ -107,13 +108,13 @@ func unzip() error {
 }
 
 func printJSON() error {
-	iv, err := GetVerArchiveFile()
+	iv, err := GetVerArchive()
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("Installed version is %s\n\n", iv)
-	b, err := getVerFile()
+	b, err := getVer()
 	if err != nil {
 		return err
 	}
@@ -141,11 +142,12 @@ func printJSON() error {
 	return nil
 }
 
-func GetVerArchiveFile() (string, error) {
-	b, err := getVerFile()
+func GetVerArchive() (string, error) {
+	b, err := getVer()
 	if err != nil {
 		return "00000000", nil
 	}
+
 	qv := string(b[VERSION_OFFSET:VERSION_LEN])
 	if string(b[VERSION_OFFSET:VERSION_DEV]) == "dev" {
 		qv = "dev"
@@ -217,7 +219,7 @@ func isVersionNewer(cur string, x string) (n bool, err error) {
 func cmpSums() (err error) {
 	var ImgInfo [5]IMGINFO
 
-	b, err := getVerFile()
+	b, err := getVer()
 	if err != nil {
 		return err
 	}
@@ -288,6 +290,15 @@ func getPerFile() (b []byte, err error) {
 	return ioutil.ReadFile(Machine + "-per.bin")
 }
 
-func getVerFile() (b []byte, err error) {
-	return ioutil.ReadFile("/boot/" + Machine + "-ver.bin")
+func getVer() (b []byte, err error) {
+	isUbi, err := ubi.IsUbi(3)
+	if err != nil {
+		return nil,
+			fmt.Errorf("Error determining if QSPI is UBI: %s", err)
+	}
+	if isUbi {
+		return ioutil.ReadFile("/perm/boot/" + Machine + "-ver.bin")
+	} else {
+		return readBlk("ver")
+	}
 }
