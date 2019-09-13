@@ -78,7 +78,8 @@ OPTIONS
 	-l                display version of selected server and version
 	-r                report QSPI installed version
 	-c                check SHA-1's of flash
-	-f                force upgrade (ignore version check)`,
+	-f                force upgrade (ignore version check)
+	-legacy           install legacy version`,
 	}
 }
 
@@ -92,6 +93,20 @@ func (c *Command) Main(args ...string) error {
 		parm.ByName["-s"] = DfltSrv
 	}
 
+	isUbi, err := ubi.IsUbi(3)
+	if err != nil {
+		return fmt.Errorf("Error determining if UBI format: %s", err)
+	}
+	isMounted, err := ubi.IsUbiMounted(0, 0)
+	if err != nil {
+		return fmt.Errorf("error determining if UBI mounted: %s", err)
+	}
+	if !isUbi && isMounted {
+		return fmt.Errorf("Not UBI but mounted - internal error!")
+	}
+	if isUbi && !isMounted {
+		return fmt.Errorf("Can't update UBI versions when unmounted, do qspi -mount")
+	}
 	if flag.ByName["-l"] {
 		if err := reportVerServer(parm.ByName["-s"], parm.ByName["-v"],
 			flag.ByName["-t"]); err != nil {
@@ -112,7 +127,7 @@ func (c *Command) Main(args ...string) error {
 		return nil
 	}
 
-	if err := c.doUpgrade(parm.ByName["-s"], parm.ByName["-v"],
+	if err := c.doUpgrade(isUbi, parm.ByName["-s"], parm.ByName["-v"],
 		flag.ByName["-t"], flag.ByName["-f"], flag.ByName["-legacy"]); err != nil {
 		return err
 	}
@@ -160,7 +175,7 @@ func compareChecksums() (err error) {
 	return nil
 }
 
-func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err error) {
+func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bool) (err error) {
 	n, err := getFile(s, v, t, ArchiveName)
 	if err != nil {
 		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
@@ -173,41 +188,17 @@ func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err err
 	}
 	defer rmFiles()
 
-	// If forced legacy, do that. Otherwise check if this is a UBI
-	// volume. If not, always do legacy upgrades.
-	ubiAttached := false
-	isUbi, err := ubi.IsUbi(3)
-	if err != nil {
-		return err
-	}
-	if !isUbi {
+	if l || !isUbi {
 		legacy = true
 	} else {
-		ubiAttached, err = ubi.IsUbiAttached(0)
-		if err != nil {
-			ubiAttached = true
-		} else {
-			return err
-		}
-
-		_, err = os.Stat(V2Name)
-		if l || os.IsNotExist(err) {
-			if ubiAttached {
-				if !l {
-					return fmt.Errorf("Can't upgrade to legacy versions with UBI attached\n")
-				}
+		if _, err = os.Stat(V2Name); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("Must use -legacy option to downgrade to legacy versions")
 			}
-			legacy = true
-		} else {
-			if err != nil {
-				return fmt.Errorf("Unexpected error %s stating v2 file")
-			}
-			if !ubiAttached {
-				return fmt.Errorf("Can't upgrade to current versions without UBI attached\n")
-			}
+			return fmt.Errorf("Unexpected error %s stating v2 file",
+				err)
 		}
 	}
-	fmt.Print("\n")
 
 	if !f {
 		qv, err := GetVerArchiveFile()
@@ -238,7 +229,8 @@ func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err err
 				return nil
 			}
 			if !newer {
-				fmt.Printf("Aborting, server version %s is not newer\n", sv)
+				fmt.Printf("Aborting, server version %s is older than %s\n",
+					sv, qv)
 				fmt.Printf("Use -f to force upgrade.\n")
 				return nil
 			}
@@ -262,7 +254,7 @@ func (c *Command) doUpgrade(s string, v string, t bool, f bool, l bool) (err err
 	// because the UBI has to be attached for version checks, etc
 	// to work correcly and so the user has to keep things mounted,
 	// but we do the unmount just before we program the image.
-	if ubiAttached && l {
+	if isUbi && l {
 		err = c.g.Main("qspi", "-unmount")
 		if err != nil {
 			return fmt.Errorf("Error unmounting UBI for legacy downgrade", err)
