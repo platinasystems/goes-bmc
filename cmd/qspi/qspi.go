@@ -85,7 +85,7 @@ func selectQSPI(pin *gpio.Pin, q bool) error {
 	return nil
 }
 
-func findMount(mountPoint string) (dev string, err error) {
+func findMount(dev string) (mountPoint string, err error) {
 	f, err := os.Open("/proc/mounts")
 	if err != nil {
 		return "", err
@@ -95,8 +95,8 @@ func findMount(mountPoint string) (dev string, err error) {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if fields[1] == mountPoint {
-			return fields[0], nil
+		if fields[0] == dev {
+			return fields[1], nil
 		}
 	}
 	return "", scanner.Err()
@@ -157,7 +157,7 @@ func copyRecurse(src, dst string, overwrite bool) (err error) {
 	return nil
 }
 
-func (c Command) Main(args ...string) error {
+func (c Command) Main(args ...string) (err error) {
 	pin, found := gpio.Pins["QSPI_MUX_SEL"]
 	if !found {
 		return fmt.Errorf("Can't find QSPI_MUX_SEL")
@@ -176,7 +176,7 @@ func (c Command) Main(args ...string) error {
 	flag, args := flags.New(args, "-unmount", "-mount", "-update")
 
 	if len(args) > 0 {
-		sel, err := strconv.Atoi(args[0])
+		sel, err = strconv.Atoi(args[0])
 		if err != nil {
 			return fmt.Errorf("Error parsing %s: %s", args[0], err)
 		}
@@ -188,32 +188,18 @@ func (c Command) Main(args ...string) error {
 			return fmt.Errorf("Invalid unit number %d", sel)
 		}
 	}
-	mounts := []struct {
-		mp     string
-		dev    string
-		fstype string
-		flags  uintptr
-	}{
-		{"/boot", "/perm/boot", "", syscall.MS_BIND},
-		{"/etc", "/perm/etc", "", syscall.MS_BIND},
-		{"/perm", "/dev/ubi0_0", "ubifs", 0},
-	}
 
 	umount := false
-	for _, mount := range mounts {
-		dev, err := findMount(mount.mp)
-		if err != nil {
-			return fmt.Errorf("Error finding %s mountpoint: %s",
-				mount.mp, err)
+	if mnt, err := ubi.IsUbiMounted(0, 0); err == nil {
+		if mnt {
+			if !flag.ByName["-unmount"] {
+				return fmt.Errorf("Can't switch QSPI with UBI mounted, use -unmount")
+			}
+			umount = true
 		}
-		if dev == "" {
-			continue
-		}
-		if !flag.ByName["-unmount"] {
-			return fmt.Errorf("Can't switch QSPI with %s mounted, use -unmount",
-				mount.mp)
-		}
-		umount = true
+	} else {
+		return fmt.Errorf("Error determining if UBI is mounted: %s",
+			err)
 	}
 
 	detach := false
@@ -230,10 +216,11 @@ func (c Command) Main(args ...string) error {
 			}
 		}
 	} else {
-		return err
+		return fmt.Errorf("Error determining if UBI is attached: %s",
+			err)
 	}
 
-	err := copyRecurse("/boot", "/volatile/boot", true)
+	err = copyRecurse("/boot", "/volatile/boot", true)
 	if err != nil {
 		return fmt.Errorf("Error copying /boot to /volatile/boot: %s",
 			err)
@@ -245,18 +232,18 @@ func (c Command) Main(args ...string) error {
 	}
 
 	if umount {
-		for _, mount := range mounts {
-			dev, err := findMount(mount.mp)
+		for {
+			dev, err := findMount("/dev/ubi0_0")
 			if err != nil {
-				return fmt.Errorf("Error re-finding %s mountpoint: %s",
-					mount.mp, err)
+				return fmt.Errorf("Error finding UBI mounts: %s",
+					err)
 			}
 			if dev == "" {
-				continue
+				break
 			}
-			if err := syscall.Unmount(mount.mp, 0); err != nil {
+			if err := syscall.Unmount(dev, 0); err != nil {
 				return fmt.Errorf("Error unmounting %s: %s",
-					mount.mp, err)
+					dev, err)
 			}
 		}
 	}
@@ -291,8 +278,16 @@ func (c Command) Main(args ...string) error {
 				err)
 		}
 
-		for i := len(mounts); i > 0; i-- {
-			mount := mounts[i-1]
+		for _, mount := range []struct {
+			mp     string
+			dev    string
+			fstype string
+			flags  uintptr
+		}{
+			{"/perm", "/dev/ubi0_0", "ubifs", 0},
+			{"/boot", "/perm/boot", "", syscall.MS_BIND},
+			{"/etc", "/perm/etc", "", syscall.MS_BIND},
+		} {
 			if err := syscall.Mount(mount.dev, mount.mp,
 				mount.fstype, mount.flags, ""); err != nil {
 				return fmt.Errorf("Error mounting %s: %s",
