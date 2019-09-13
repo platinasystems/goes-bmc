@@ -217,25 +217,23 @@ func (c Command) Main(args ...string) error {
 	}
 
 	detach := false
-	_, err := os.Stat("/sys/devices/virtual/ubi/ubi0")
-	if err == nil {
-		if !flag.ByName["-unmount"] {
-			return fmt.Errorf("Can't switch QSPI with UBI attached, use -unmount")
-		} else {
-			detach = true
-		}
-	} else {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("Unexpected error %s stating ubi device",
-				err)
+	if att, err := ubi.IsUbiAttached(0); err == nil {
+		if att {
+			if !flag.ByName["-unmount"] {
+				return fmt.Errorf("Can't switch QSPI with UBI attached, use -unmount")
+			} else {
+				detach = true
+			}
 		} else {
 			if umount {
 				return fmt.Errorf("Mounted but not attached, aborting!")
 			}
 		}
+	} else {
+		return err
 	}
 
-	err = copyRecurse("/boot", "/volatile/boot", true)
+	err := copyRecurse("/boot", "/volatile/boot", true)
 	if err != nil {
 		return fmt.Errorf("Error copying /boot to /volatile/boot: %s",
 			err)
