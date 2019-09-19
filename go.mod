@@ -5,7 +5,7 @@ require (
 	github.com/platinasystems/eeprom v1.0.0
 	github.com/platinasystems/fdt v1.0.0
 	github.com/platinasystems/flags v1.0.1
-	github.com/platinasystems/goes v1.12.0
+	github.com/platinasystems/goes v1.12.2
 	github.com/platinasystems/gpio v1.2.0
 	github.com/platinasystems/i2c v1.2.0
 	github.com/platinasystems/log v1.2.1

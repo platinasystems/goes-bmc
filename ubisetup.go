@@ -100,6 +100,7 @@ func copyRecurse(src, dst string, overwrite bool) (err error) {
 }
 
 func ubiSetup() (err error) {
+	gpioInit()
 	pin, found := gpio.Pins["QSPI_MUX_SEL"]
 	if found {
 		r, _ := pin.Value()
