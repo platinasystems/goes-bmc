@@ -18,7 +18,6 @@ import (
 	"github.com/platinasystems/goes-bmc/cmd/toggle"
 	"github.com/platinasystems/goes-bmc/cmd/ucd9090d"
 	"github.com/platinasystems/goes-bmc/cmd/upgrade"
-	"github.com/platinasystems/goes-bmc/cmd/upgraded"
 	"github.com/platinasystems/goes/cmd"
 	"github.com/platinasystems/goes/cmd/bang"
 	"github.com/platinasystems/goes/cmd/buildid"
@@ -151,7 +150,6 @@ var Goes = &goes.Goes{
 				[]string{"ledgpiod"},
 				[]string{"mmclogd"},
 				[]string{"sshd"},
-				[]string{"upgraded"},
 				[]string{"uptimed"},
 				[]string{"ucd9090d"},
 				[]string{"w83795d"},
@@ -269,9 +267,8 @@ var Goes = &goes.Goes{
 		"upgrade": &upgrade.Command{
 			Gpio: gpioInit,
 		},
-		"upgraded": &upgraded.Command{},
-		"uptime":   uptime.Command{},
-		"uptimed":  uptimed.Command(make(chan struct{})),
+		"uptime":  uptime.Command{},
+		"uptimed": uptimed.Command(make(chan struct{})),
 		"w83795d": &w83795d.Command{
 			Init: w83795dInit,
 		},
