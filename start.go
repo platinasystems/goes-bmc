@@ -21,8 +21,7 @@ const (
 func startConfGpioHook() error {
 	var deviceVer byte
 
-	gpioInit()
-	pin, found := gpio.Pins["QSPI_MUX_SEL"]
+	pin, found := gpio.FindPin("QSPI_MUX_SEL")
 	if found {
 		r, _ := pin.Value()
 		if r {
@@ -33,7 +32,7 @@ func startConfGpioHook() error {
 
 	}
 
-	for name, pin := range gpio.Pins {
+	for name, pin := range gpio.AllPins() {
 		if name == "QSPI_MUX_SEL" {
 			continue
 		}
@@ -42,14 +41,14 @@ func startConfGpioHook() error {
 			fmt.Printf("%s: %v\n", name, err)
 		}
 	}
-	pin, found = gpio.Pins["FRU_I2C_MUX_RST_L"]
+	pin, found = gpio.FindPin("FRU_I2C_MUX_RST_L")
 	if found {
 		pin.SetValue(false)
 		time.Sleep(1 * time.Microsecond)
 		pin.SetValue(true)
 	}
 
-	pin, found = gpio.Pins["MAIN_I2C_MUX_RST_L"]
+	pin, found = gpio.FindPin("MAIN_I2C_MUX_RST_L")
 	if found {
 		pin.SetValue(false)
 		time.Sleep(1 * time.Microsecond)
@@ -62,7 +61,7 @@ func startConfGpioHook() error {
 	ss, _ := redis.Hget(redis.DefaultHash, "eeprom.DeviceVersion")
 	_, _ = fmt.Sscan(ss, &deviceVer)
 	if deviceVer == 0x0 || deviceVer == 0xff {
-		pin, found = gpio.Pins["FP_BTN_UARTSEL_EN_L"]
+		pin, found = gpio.FindPin("FP_BTN_UARTSEL_EN_L")
 		if found {
 			pin.SetValue(false)
 		}

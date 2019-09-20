@@ -197,7 +197,7 @@ func diagI2cWriteOffsetByte(b uint8, a uint8, c uint8, d uint8) {
 
 // returns value of BMC gpio name
 func gpioGet(name string) (bool, error) {
-	pin, found := gpio.Pins[name]
+	pin, found := gpio.FindPin(name)
 	if !found {
 		return false, fmt.Errorf("%s: not found")
 	}
@@ -206,7 +206,7 @@ func gpioGet(name string) (bool, error) {
 
 // sets BMC gpio name to value
 func gpioSet(name string, value bool) error {
-	pin, found := gpio.Pins[name]
+	pin, found := gpio.FindPin(name)
 	if !found {
 		return fmt.Errorf("%s: not found")
 	}

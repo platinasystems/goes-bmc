@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 
 	"github.com/platinasystems/flags"
 	"github.com/platinasystems/goes"
@@ -33,9 +32,7 @@ const (
 var legacy bool
 
 type Command struct {
-	Gpio func()
-	gpio sync.Once
-	g    *goes.Goes
+	g *goes.Goes
 }
 
 func (c *Command) Goes(g *goes.Goes) { c.g = g }

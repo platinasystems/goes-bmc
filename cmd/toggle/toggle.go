@@ -5,7 +5,6 @@
 package toggle
 
 import (
-	"sync"
 	"time"
 
 	"github.com/platinasystems/goes/lang"
@@ -15,22 +14,19 @@ import (
 
 const i2cGpioAddr = 0x74
 
-type Command struct {
-	Init func()
-	init sync.Once
-}
+type Command struct{}
 
-func (*Command) String() string { return "toggle" }
+func (Command) String() string { return "toggle" }
 
-func (*Command) Usage() string { return "toggle SECONDS" }
+func (Command) Usage() string { return "toggle SECONDS" }
 
-func (*Command) Apropos() lang.Alt {
+func (Command) Apropos() lang.Alt {
 	return lang.Alt{
 		lang.EnUS: "toggle console port between x86 and BMC",
 	}
 }
 
-func (*Command) Man() lang.Alt {
+func (Command) Man() lang.Alt {
 	return lang.Alt{
 		lang.EnUS: `
 DESCRIPTION
@@ -38,12 +34,8 @@ DESCRIPTION
 	}
 }
 
-func (c *Command) Main(args ...string) error {
-	if c.Init != nil {
-		c.init.Do(c.Init)
-	}
-
-	pin, found := gpio.Pins["CPU_TO_MAIN_I2C_EN"]
+func (Command) Main(args ...string) error {
+	pin, found := gpio.FindPin("CPU_TO_MAIN_I2C_EN")
 	if found {
 		pin.SetValue(true)
 	}
@@ -52,7 +44,7 @@ func (c *Command) Main(args ...string) error {
 	if found {
 		pin.SetValue(false)
 	}
-	pin, found = gpio.Pins["FP_BTN_UARTSEL_EN_L"]
+	pin, found = gpio.FindPin("FP_BTN_UARTSEL_EN_L")
 	if found {
 		pin.SetValue(true)
 	}

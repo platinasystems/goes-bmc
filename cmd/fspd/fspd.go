@@ -51,8 +51,6 @@ type Command struct {
 	Info
 	Init func()
 	init sync.Once
-	Gpio func()
-	gpio sync.Once
 }
 
 type Info struct {
@@ -175,7 +173,7 @@ func (c *Command) update() error {
 
 	for k, i := range VpageByKey {
 
-		pin, found := gpio.Pins[Vdev[i].GpioPrsntL]
+		pin, found := gpio.FindPin(Vdev[i].GpioPrsntL)
 		t, err := pin.Value()
 		if !found || err != nil || t {
 			//not present
@@ -330,7 +328,7 @@ func (c *Command) updateMon() error {
 
 	for k, i := range VpageByKey {
 
-		pin, found := gpio.Pins[Vdev[i].GpioPrsntL]
+		pin, found := gpio.FindPin(Vdev[i].GpioPrsntL)
 		t, err := pin.Value()
 		if !found || err != nil || t {
 			// PSU not present
@@ -1006,8 +1004,7 @@ func (h *I2cDev) Eeprom() (string, error) {
 }
 
 func (h *I2cDev) PsuStatus() string {
-	command.gpio.Do(command.Gpio)
-	pin, found := gpio.Pins[h.GpioPrsntL]
+	pin, found := gpio.FindPin(h.GpioPrsntL)
 	if !found {
 		h.Installed = 0
 		return "not_found"
@@ -1028,7 +1025,7 @@ func (h *I2cDev) PsuStatus() string {
 		h.Update = [3]bool{true, true, true}
 	}
 	h.Installed = 1
-	pin, found = gpio.Pins[h.GpioPwrok]
+	pin, found = gpio.FindPin(h.GpioPwrok)
 	if !found {
 		return "undetermined"
 	}
@@ -1043,7 +1040,7 @@ func (h *I2cDev) PsuStatus() string {
 }
 
 func (h *I2cDev) SetAdminState(s string) {
-	pin, found := gpio.Pins[h.GpioPwronL]
+	pin, found := gpio.FindPin(h.GpioPwronL)
 	if found {
 		switch s {
 		case "disable":
@@ -1057,7 +1054,7 @@ func (h *I2cDev) SetAdminState(s string) {
 }
 
 func (h *I2cDev) GetAdminState() string {
-	pin, found := gpio.Pins[h.GpioPwronL]
+	pin, found := gpio.FindPin(h.GpioPwronL)
 	if !found {
 		return "not found"
 	}
@@ -1077,25 +1074,25 @@ func powerCycle() error {
 	time.Sleep(500 * time.Millisecond)
 
 	log.Print("initiate manual power cycle")
-	pin, found := gpio.Pins["PSU0_PWRON_L"]
+	pin, found := gpio.FindPin("PSU0_PWRON_L")
 	if found {
 		pin.SetValue(true)
 	}
-	pin, found = gpio.Pins["PSU1_PWRON_L"]
+	pin, found = gpio.FindPin("PSU1_PWRON_L")
 	if found {
 		pin.SetValue(true)
 	}
 	time.Sleep(1 * time.Second)
-	pin, found = gpio.Pins["PSU0_PWRON_L"]
+	pin, found = gpio.FindPin("PSU0_PWRON_L")
 	if found {
 		pin.SetValue(false)
 	}
-	pin, found = gpio.Pins["PSU1_PWRON_L"]
+	pin, found = gpio.FindPin("PSU1_PWRON_L")
 	if found {
 		pin.SetValue(false)
 	}
 	time.Sleep(1 * time.Second)
-	pin, found = gpio.Pins["ETHX_RST_L"]
+	pin, found = gpio.FindPin("ETHX_RST_L")
 	if found {
 		pin.SetValue(false)
 		time.Sleep(50 * time.Millisecond)

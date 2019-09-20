@@ -6,38 +6,34 @@ package diag
 
 import (
 	"fmt"
-	"sync"
 
-	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/flags"
+	"github.com/platinasystems/goes/lang"
 )
 
 var debug, x86, writeField, delField, writeSN bool
 var argF []string
 var flagF *flags.Flags
 
-type Command struct {
-	Gpio func()
-	gpio sync.Once
-}
+type Command struct{}
 
 type Diag func() error
 
-func (*Command) String() string { return "diag" }
+func (Command) String() string { return "diag" }
 
-func (*Command) Usage() string {
+func (Command) Usage() string {
 	return `
 diag [-debug] | prom [-w | -delete | -x86] \
 	[TYPE | "crc" | "length" | "onie" | "copy" ] [VALUE]`
 }
 
-func (*Command) Apropos() lang.Alt {
+func (Command) Apropos() lang.Alt {
 	return lang.Alt{
 		lang.EnUS: "run diagnostics",
 	}
 }
 
-func (*Command) Man() lang.Alt {
+func (Command) Man() lang.Alt {
 	return lang.Alt{
 		lang.EnUS: `
 DESCRIPTION
@@ -67,7 +63,7 @@ EXAMPLES
 	}
 }
 
-func (c *Command) Main(args ...string) error {
+func (Command) Main(args ...string) error {
 	var diag string
 	flagF, args = flags.New(args, "-debug", "-x86", "-w", "-delete")
 	debug = flagF.ByName["-debug"]
@@ -82,7 +78,6 @@ func (c *Command) Main(args ...string) error {
 	if n := len(args); n != 0 {
 		diag = args[0]
 	}
-	c.gpio.Do(c.Gpio)
 	diags, found := map[string][]Diag{
 		"": []Diag{
 			diagI2c,
@@ -139,12 +134,9 @@ func diagMem() error {
 	var result bool
 	var r string
 
-
 	/* diagTest: DRAM
 	tbd: run memory diag
 	*/
-
-
 
 	/* diagTest: uSD
 	tbd: write/read/verify a file
@@ -159,11 +151,9 @@ func diagMem() error {
 	// test when detected only
 	if r == "pass" {
 		result, _ = diagTestMMC()
-	        r = CheckPassB(result, true)
+		r = CheckPassB(result, true)
 		fmt.Printf("%15s|%25s|%10s|%10t|%10t|%10t|%6s|%35s\n", "uSD", "/dev/mmcblk0p1", "-", result, active_high_on_min, active_high_on_max, r, "write and read uSD")
 	}
-
-
 
 	/* diagTest: QSPI
 	tbd: likely n/a QSPI tested via SW upgrade path, need to validate dual boot if supported

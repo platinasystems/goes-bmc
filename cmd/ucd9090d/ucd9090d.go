@@ -56,8 +56,6 @@ type Command struct {
 	Info
 	Init func()
 	init sync.Once
-	Gpio func()
-	gpio sync.Once
 }
 
 type Info struct {
@@ -243,8 +241,7 @@ func (c *Command) updateW() error {
 		if watchdogTimer >= watchdogTimeout {
 			log.Print("warning: host watchdog timer expired; reset host; disable watchdog")
 			watchdogExpired = true
-			c.gpio.Do(c.Gpio)
-			pin, found := gpio.Pins["BMC_TO_HOST_RST_L"]
+			pin, found := gpio.FindPin("BMC_TO_HOST_RST_L")
 			if found {
 				pin.SetValue(false)
 				time.Sleep(100 * time.Millisecond)

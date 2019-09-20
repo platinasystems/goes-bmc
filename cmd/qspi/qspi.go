@@ -67,7 +67,7 @@ func selectQSPI(pin *gpio.Pin, q bool) error {
 		return fmt.Errorf("Error in DoI2cRpc 99-1: %s", err)
 	}
 
-	pin, found := gpio.Pins["QSPI_MUX_SEL"]
+	pin, found := gpio.FindPin("QSPI_MUX_SEL")
 	if found {
 		pin.SetValue(q)
 	} else {
@@ -158,7 +158,7 @@ func copyRecurse(src, dst string, overwrite bool) (err error) {
 }
 
 func (c Command) Main(args ...string) (err error) {
-	pin, found := gpio.Pins["QSPI_MUX_SEL"]
+	pin, found := gpio.FindPin("QSPI_MUX_SEL")
 	if !found {
 		return fmt.Errorf("Can't find QSPI_MUX_SEL")
 	}

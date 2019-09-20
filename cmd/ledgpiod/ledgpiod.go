@@ -196,7 +196,7 @@ func (c *Command) update() error {
 func (h *I2cDev) LedFpInit() error {
 	var d byte
 
-	pin, found := gpio.Pins["SYSTEM_LED_RST_L"]
+	pin, found := gpio.FindPin("SYSTEM_LED_RST_L")
 	if found {
 		pin.SetValue(true)
 	}
