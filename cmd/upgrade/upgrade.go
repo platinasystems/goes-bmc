@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/platinasystems/flags"
 	"github.com/platinasystems/goes"
@@ -27,6 +28,7 @@ const (
 	ArchiveName = Machine + ".zip"
 	VersionName = Machine + "-ver.bin"
 	V2Name      = Machine + "-v2"
+	TmpDir      = "/var/run/goes/upgrade"
 )
 
 var legacy bool
@@ -104,6 +106,11 @@ func (c *Command) Main(args ...string) error {
 	if isUbi && !isMounted {
 		return fmt.Errorf("Can't update UBI versions when unmounted, do qspi -mount")
 	}
+	err = os.MkdirAll(TmpDir, DfltMod)
+	if err != nil {
+		return fmt.Errorf("Unable to create work directory: %s", err)
+	}
+
 	if flag.ByName["-l"] {
 		if err := reportVerServer(parm.ByName["-s"], parm.ByName["-v"],
 			flag.ByName["-t"]); err != nil {
@@ -144,7 +151,7 @@ func reportVerServer(s string, v string, t bool) (err error) {
 	}
 	defer rmFiles()
 
-	l, err := ioutil.ReadFile(VersionName)
+	l, err := ioutil.ReadFile(filepath.Join(TmpDir, VersionName))
 	if err != nil {
 		fmt.Printf("Image version not found on server\n")
 		return nil
@@ -188,7 +195,7 @@ func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bo
 	if l || !isUbi {
 		legacy = true
 	} else {
-		if _, err = os.Stat(V2Name); err != nil {
+		if _, err = os.Stat(filepath.Join(TmpDir, V2Name)); err != nil {
 			if os.IsNotExist(err) {
 				return fmt.Errorf("Must use -legacy option to downgrade to legacy versions")
 			}
@@ -208,7 +215,7 @@ func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bo
 			return nil
 		}
 
-		l, err := ioutil.ReadFile(VersionName)
+		l, err := ioutil.ReadFile(filepath.Join(TmpDir, VersionName))
 		if err != nil {
 			fmt.Printf("Aborting, couldn't find version number on server\n")
 			fmt.Printf("Use -f to force upgrade.\n")
@@ -241,7 +248,8 @@ func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bo
 		fmt.Println("Using default of ip=dhcp")
 		perFile = []byte("dhcp\x00")
 	}
-	err = ioutil.WriteFile(Machine+"-per.bin", perFile, 0644)
+	err = ioutil.WriteFile(filepath.Join(TmpDir, Machine+"-per.bin"), perFile,
+		0644)
 	if err != nil {
 		return fmt.Errorf("Error creating %s-per.bin - aborting!")
 	}

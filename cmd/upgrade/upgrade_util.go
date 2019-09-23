@@ -41,7 +41,8 @@ func getFile(s string, v string, t bool, fn string) (int, error) {
 	if err != nil {
 		return 0, nil
 	}
-	f, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, DfltMod)
+	f, err := os.OpenFile(filepath.Join(TmpDir, fn),
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, DfltMod)
 	if err != nil {
 		return 0, err
 	}
@@ -56,10 +57,10 @@ func getFile(s string, v string, t bool, fn string) (int, error) {
 
 func rmFiles() {
 	for _, j := range img {
-		os.Remove(Machine + "-" + j + ".bin")
+		os.Remove(filepath.Join(TmpDir, Machine+"-"+j+".bin"))
 	}
 	for _, j := range legacyImg {
-		os.Remove(Machine + "-" + j + ".bin")
+		os.Remove(filepath.Join(TmpDir, Machine+"-"+j+".bin"))
 	}
 	rmFile(ArchiveName)
 	rmFile(V2Name)
@@ -67,22 +68,23 @@ func rmFiles() {
 }
 
 func rmFile(f string) error {
-	if _, err := os.Stat(f); err != nil {
+	fn := filepath.Join(TmpDir, f)
+	if _, err := os.Stat(fn); err != nil {
 		return err
 	}
-	if err := os.Remove(f); err != nil {
+	if err := os.Remove(fn); err != nil {
 		return err
 	}
 	return nil
 }
 
 func unzip() error {
-	archive := ArchiveName
+	archive := filepath.Join(TmpDir, ArchiveName)
 	reader, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
 	}
-	target := "."
+	target := TmpDir
 	for _, file := range reader.File {
 		path := filepath.Join(target, file.Name)
 		if file.FileInfo().IsDir() {
@@ -287,7 +289,7 @@ func cmpSums() (err error) {
 }
 
 func getPerFile() (b []byte, err error) {
-	return ioutil.ReadFile(Machine + "-per.bin")
+	return ioutil.ReadFile("/boot/" + Machine + "-per.bin")
 }
 
 func getVer() (b []byte, err error) {

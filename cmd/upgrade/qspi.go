@@ -10,6 +10,7 @@ import (
 	"hash/crc32"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -134,7 +135,7 @@ func writeImageAll() (err error) {
 	if !legacy {
 		for _, j := range newImg {
 			src := Machine + "-" + j + ".bin"
-			s, err := ioutil.ReadFile(src)
+			s, err := ioutil.ReadFile(filepath.Join(TmpDir, src))
 			if err != nil {
 				return fmt.Errorf("Error reading %s: %s\n", src, err)
 			}
@@ -161,7 +162,8 @@ func writeImageAll() (err error) {
 	return nil
 }
 
-func writeImageVerify(im string, of uint32, sz uint32, vf bool) error {
+func writeImageVerify(imBase string, of uint32, sz uint32, vf bool) error {
+	im := filepath.Join(TmpDir, imBase)
 	if fi, err := os.Stat(im); !os.IsNotExist(err) {
 		if fi.Size() == 0 {
 			fmt.Println("skipping file...", im)
