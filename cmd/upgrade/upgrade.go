@@ -283,7 +283,8 @@ func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bo
 	if isUbi && l {
 		err = c.g.Main("qspi", "-unmount")
 		if err != nil {
-			return fmt.Errorf("Error unmounting UBI for legacy downgrade", err)
+			return fmt.Errorf("Error unmounting UBI for legacy downgrade: %s",
+				err)
 		}
 	}
 
