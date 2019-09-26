@@ -96,14 +96,35 @@ func (c *Command) Main(args ...string) error {
 	if err != nil {
 		return fmt.Errorf("Error determining if UBI format: %s", err)
 	}
-	isMounted, err := ubi.IsUbiMounted(0, 0)
+	isUbiMounted, err := ubi.IsUbiMounted(0, 0)
 	if err != nil {
 		return fmt.Errorf("error determining if UBI mounted: %s", err)
 	}
-	if !isUbi && isMounted {
+	mpc := 0 // Mount Point Count
+	for _, mp := range []string{
+		"/perm",
+		"/boot",
+		"/etc",
+	} {
+		dev, err := findDevForMountpoint(mp)
+		if err != nil {
+			return fmt.Errorf("Unable to determine where %s is mounted: %s",
+				mp, err)
+		}
+		if dev == "" {
+			continue
+		}
+		if dev != "/dev/ubi0_0" {
+			return fmt.Errorf("Unexpected mount on %s: %s",
+				mp, dev)
+		}
+		mpc++
+	}
+
+	if !isUbi && (isUbiMounted || mpc > 0) {
 		return fmt.Errorf("Not UBI but mounted - internal error!")
 	}
-	if isUbi && !isMounted {
+	if isUbi && (!isUbiMounted || mpc != 3) {
 		return fmt.Errorf("Can't update UBI versions when unmounted, do qspi -mount")
 	}
 	err = os.MkdirAll(TmpDir, DfltMod)

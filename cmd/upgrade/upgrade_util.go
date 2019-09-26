@@ -6,6 +6,7 @@ package upgrade
 
 import (
 	"archive/zip"
+	"bufio"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -303,4 +304,21 @@ func getVer() (b []byte, err error) {
 	} else {
 		return readBlk("ver")
 	}
+}
+
+func findDevForMountpoint(mp string) (dev string, err error) {
+	f, err := os.Open("/proc/mounts")
+	if err != nil {
+		return "", fmt.Errorf("Unable to open /proc/mounts: %s", err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if fields[1] == mp {
+			return fields[0], nil
+		}
+	}
+	return "", scanner.Err()
 }
