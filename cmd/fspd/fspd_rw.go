@@ -98,7 +98,7 @@ func (r *reg32B) get(h *I2cDev) {
 	data[0] = byte(h.MuxValue)
 	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
 	x++
-	data[0] = i2c.BlockMax
+	data[0] = i2c.SMBusMax
 	j[x] = I{true, i2c.Read, r.offset(), i2c.I2CBlockData, data, h.Bus, h.AddrProm, 0}
 	x++
 }

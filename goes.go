@@ -175,7 +175,7 @@ var Goes = &goes.Goes{
 		"install": &install.Command{},
 		"ip":      ip.Goes,
 		"ipcfg":   ipcfg.Command{},
-		"kexec":   kexec.Command{},
+		"kexec":   &kexec.Command{},
 		"keys":    keys.Command{},
 		"kill":    kill.Command{},
 		"ledgpiod": &ledgpiod.Command{

@@ -130,7 +130,6 @@ func (c *Command) Main(...string) error {
 		}
 	}
 
-	holdOff := 3
 	t := time.NewTicker(1 * time.Second)
 	tm := time.NewTicker(5 * time.Second)
 	for {
@@ -138,20 +137,9 @@ func (c *Command) Main(...string) error {
 		case <-c.stop:
 			return nil
 		case <-t.C:
-			if holdOff == 0 {
-				if err = c.update(); err != nil {
-					holdOff = 5
-				}
-			}
+			c.update()
 		case <-tm.C:
-			if holdOff > 0 {
-				holdOff--
-			}
-			if holdOff == 0 {
-				if err = c.updateMon(); err != nil {
-					holdOff = 5
-				}
-			}
+			c.updateMon()
 		}
 	}
 	return nil
@@ -172,7 +160,6 @@ func (c *Command) update() error {
 	}
 
 	for k, i := range VpageByKey {
-
 		pin, found := gpio.FindPin(Vdev[i].GpioPrsntL)
 		t, err := pin.Value()
 		if !found || err != nil || t {
@@ -988,15 +975,16 @@ func (h *I2cDev) MfgModel() (string, error) {
 
 func (h *I2cDev) Eeprom() (string, error) {
 	var v string
-	r := getRegsE()
+
 	for n := 0; n < 8; n++ {
+		r := getRegsE()
 		r.block[n].get(h)
 		closeMux(h)
 		err := DoI2cRpc()
 		if err != nil {
 			return "", err
 		}
-		for k := 1; k < i2c.BlockMax; k++ {
+		for k := 1; k <= i2c.SMBusMax; k++ {
 			v += fmt.Sprintf("%02x", s[1].D[k])
 		}
 	}
