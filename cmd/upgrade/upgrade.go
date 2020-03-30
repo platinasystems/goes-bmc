@@ -132,9 +132,14 @@ func (c *Command) Main(args ...string) error {
 		return fmt.Errorf("Unable to create work directory: %s", err)
 	}
 
+	url := "http://"
+	if flag.ByName["-t"] {
+		url = "tftp://"
+	}
+
+	url += parm.ByName["-s"] + "/" + parm.ByName["-v"]
 	if flag.ByName["-l"] {
-		if err := reportVerServer(parm.ByName["-s"], parm.ByName["-v"],
-			flag.ByName["-t"]); err != nil {
+		if err := reportVerServer(url); err != nil {
 			return err
 		}
 		return nil
@@ -152,20 +157,21 @@ func (c *Command) Main(args ...string) error {
 		return nil
 	}
 
-	if err := c.doUpgrade(isUbi, parm.ByName["-s"], parm.ByName["-v"],
-		flag.ByName["-t"], flag.ByName["-f"], flag.ByName["-legacy"]); err != nil {
+	if err := c.doUpgrade(isUbi, url,
+		flag.ByName["-f"], flag.ByName["-legacy"]); err != nil {
 		return err
 	}
 	return nil
 }
 
-func reportVerServer(s string, v string, t bool) (err error) {
-	n, err := getFile(s, v, t, ArchiveName)
+func reportVerServer(s string) (err error) {
+	n, err := getFile(s, ArchiveName)
 	if err != nil {
-		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
+		return fmt.Errorf("Error reading %s/%s: %s\n", s, ArchiveName,
+			err)
 	}
 	if n < 1000 {
-		return fmt.Errorf("File %s %d bytes\n", ArchiveName, n)
+		return fmt.Errorf("File %s/%s %d bytes\n", s, ArchiveName, n)
 	}
 	if err := unzip(); err != nil {
 		return fmt.Errorf("Server error: unzipping file: %\n", err)
@@ -181,7 +187,7 @@ func reportVerServer(s string, v string, t bool) (err error) {
 	if string(l[VERSION_OFFSET:VERSION_DEV]) == "dev" {
 		sv = "dev"
 	}
-	printVerServer(s, v, sv)
+	printVerServer(s, sv)
 	return nil
 }
 
@@ -200,13 +206,15 @@ func compareChecksums() (err error) {
 	return nil
 }
 
-func (c *Command) doUpgrade(isUbi bool, s string, v string, t bool, f bool, l bool) (err error) {
-	n, err := getFile(s, v, t, ArchiveName)
+func (c *Command) doUpgrade(isUbi bool, s string,
+	f bool, l bool) (err error) {
+	n, err := getFile(s, ArchiveName)
 	if err != nil {
-		return fmt.Errorf("Error reading %s: %s\n", ArchiveName, err)
+		return fmt.Errorf("Error reading %s/%s: %s\n", s,
+			ArchiveName, err)
 	}
 	if n < 1000 {
-		return fmt.Errorf("File %s %d bytes\n", ArchiveName, n)
+		return fmt.Errorf("File %s/%s %d bytes\n", s, ArchiveName, n)
 	}
 	if err = unzip(); err != nil {
 		return fmt.Errorf("Server error: unzipping file: %v\n", err)

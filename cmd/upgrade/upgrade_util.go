@@ -32,12 +32,9 @@ type IMGINFO struct {
 	Chksum string
 }
 
-func getFile(s string, v string, t bool, fn string) (int, error) {
+func getFile(s string, fn string) (int, error) {
 	rmFile(fn)
-	urls := "http://" + s + "/" + v + "/" + fn
-	if t {
-		urls = "tftp://" + s + "/" + v + "/" + fn
-	}
+	urls := s + "/" + fn
 	r, err := url.Open(urls)
 	if err != nil {
 		return 0, nil
@@ -163,34 +160,10 @@ func GetVerArchive() (string, error) {
 	return qv, nil
 }
 
-func getServerVersion(s string, v string, t bool) (string, error) {
-	n, err := getFile(s, v, t, ArchiveName)
-	if err != nil {
-		return "", fmt.Errorf("Error downloading: %v", err)
-	}
-	if n < 1000 {
-		return "", fmt.Errorf("Error file too small: %v", err)
-	}
-	if err := unzip(); err != nil {
-		return "", fmt.Errorf("Error unzipping file: %v", err)
-	}
-	defer rmFiles()
-	l, err := ioutil.ReadFile(VersionName)
-	if err != nil {
-		return "", nil
-	}
-	sv := string(l[VERSION_OFFSET:VERSION_LEN])
-	if string(l[VERSION_OFFSET:VERSION_DEV]) == "dev" {
-		sv = "dev"
-	}
-	return sv, nil
-}
-
-func printVerServer(s string, v string, sv string) {
+func printVerServer(s string, sv string) {
 	fmt.Print("\n")
 	fmt.Print("Version on server:\n")
-	fmt.Printf("    Requested server  : %s\n", s)
-	fmt.Printf("    Requested version : %s\n", v)
+	fmt.Printf("    Requested URL     : %s\n", s)
 	fmt.Printf("    Found version     : %s\n", sv)
 	fmt.Print("\n")
 }
