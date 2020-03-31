@@ -186,7 +186,7 @@ func isVersionNewer(cur string, x string) (n bool, err error) {
 	if err != nil {
 		f = 0.0
 	}
-	if f > c {
+	if f >= c {
 		return true, nil
 	}
 	return false, nil
