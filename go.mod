@@ -8,6 +8,7 @@ require (
 	github.com/platinasystems/gpio v1.3.0
 	github.com/platinasystems/i2c v1.2.1
 	github.com/platinasystems/log v1.2.1
+	github.com/platinasystems/mtd v0.0.1
 	github.com/platinasystems/parms v1.0.0
 	github.com/platinasystems/redis v1.2.0
 	github.com/platinasystems/ubi v1.0.0

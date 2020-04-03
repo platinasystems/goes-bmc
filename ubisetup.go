@@ -17,6 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/platinasystems/gpio"
+	"github.com/platinasystems/mtd"
 	"github.com/platinasystems/ubi"
 )
 
@@ -124,7 +125,13 @@ func ubiSetup() (err error) {
 	// Check if this is a UBI volume. If not, we need to convert it,
 	// so stash the itb, per, and ver partitions.
 
-	isUbi, err := ubi.IsUbi(3)
+	ubiDev, err := mtd.NameToUnit("ubi")
+	if err != nil {
+		return err
+	}
+	ubiDevName := "/dev/mtd" + strconv.Itoa(ubiDev)
+
+	isUbi, err := ubi.IsUbi(int32(ubiDev))
 	if err != nil {
 		return err
 	}
@@ -135,10 +142,14 @@ func ubiSetup() (err error) {
 				return err
 			}
 		}
-		itb, err := ioutil.ReadFile("/dev/mtd4")
+		itbDev, err := mtd.NameToUnit("itb")
 		if err != nil {
-			fmt.Printf("Error reading /dev/mtd4")
 			return err
+		}
+		itbDevName := "/dev/mtd" + strconv.Itoa(itbDev)
+		itb, err := ioutil.ReadFile(itbDevName)
+		if err != nil {
+			return fmt.Errorf("Error reading %s: %w", itbDevName, err)
 		}
 		itb = []byte(strings.TrimRight(string(itb), "\xff"))
 
@@ -148,10 +159,14 @@ func ubiSetup() (err error) {
 			return err
 		}
 
-		per, err := ioutil.ReadFile("/dev/mtd5")
+		perDev, err := mtd.NameToUnit("per")
 		if err != nil {
-			fmt.Printf("Error reading /dev/mtd5")
 			return err
+		}
+		perDevName := "/dev/mtd" + strconv.Itoa(perDev)
+		per, err := ioutil.ReadFile(perDevName)
+		if err != nil {
+			fmt.Errorf("Error reading %s: %w", perDevName, err)
 		}
 
 		perNoNul := ""
@@ -172,10 +187,14 @@ func ubiSetup() (err error) {
 					err)
 			}
 		}
-		ver, err := ioutil.ReadFile("/dev/mtd6")
+		verDev, err := mtd.NameToUnit("ver")
 		if err != nil {
-			fmt.Printf("Error reading /dev/mtd6")
 			return err
+		}
+		verDevName := "/dev/mtd" + strconv.Itoa(verDev)
+		ver, err := ioutil.ReadFile(verDevName)
+		if err != nil {
+			return fmt.Errorf("Error reading %s: %w", verDevName, err)
 		}
 		ver = []byte(strings.TrimRight(string(ver), "\xff"))
 		err = ioutil.WriteFile("/boot/platina-mk1-bmc-ver.bin",
@@ -184,16 +203,15 @@ func ubiSetup() (err error) {
 			return err
 		}
 
-		m, err := os.OpenFile("/dev/mtd3", os.O_RDWR, 0666)
+		m, err := os.OpenFile(ubiDevName, os.O_RDWR, 0666)
 		if err != nil {
-			return fmt.Errorf("Unable to open /dev/mtd3: %s", err)
+			return fmt.Errorf("Unable to open %s: %w", ubiDevName, err)
 		}
 		mi := &MTDinfo{}
 		_, _, e := syscall.Syscall(syscall.SYS_IOCTL, m.Fd(),
 			uintptr(MEMGETINFO), uintptr(unsafe.Pointer(mi)))
 		if e != 0 {
-			fmt.Printf("Error getting info on /dev/mtd3")
-			return e
+			fmt.Errorf("Error getting info on %s: %w", ubiDevName, e)
 		}
 		ei := &EraseInfo{0, mi.erasesize}
 		for ei.start = 0; ei.start < mi.size; ei.start += mi.erasesize {
@@ -208,7 +226,7 @@ func ubiSetup() (err error) {
 		}
 	}
 
-	err = ubi.Attach(0, 3, 0, 0) // MTD3 is the UBI partition
+	err = ubi.Attach(0, int32(ubiDev), 0, 0)
 	if err != nil {
 		return
 	}

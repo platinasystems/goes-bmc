@@ -20,6 +20,7 @@ import (
 	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/i2c"
+	"github.com/platinasystems/mtd"
 	"github.com/platinasystems/ubi"
 )
 
@@ -261,10 +262,16 @@ func (c Command) Main(args ...string) (err error) {
 			err)
 	}
 
+	ubiDev, err := mtd.NameToUnit("ubi")
+	if err != nil {
+		return err
+	}
+
+	//ubiDevName := "/dev/mtd" + strconv.Itoa(ubiDev)
 	if flag.ByName["-mount"] {
 		// Check if this is a UBI volume. If not, do not
 		// attempt to attach it.
-		isUbi, err := ubi.IsUbi(3)
+		isUbi, err := ubi.IsUbi(int32(ubiDev))
 		if err != nil {
 			return err
 		}
@@ -272,7 +279,7 @@ func (c Command) Main(args ...string) (err error) {
 			return fmt.Errorf("Not a UBI partition, can't attach")
 		}
 
-		err = ubi.Attach(0, 3, 0, 0) // MTD3 is the UBI partition
+		err = ubi.Attach(0, int32(ubiDev), 0, 0)
 		if err != nil {
 			return fmt.Errorf("Error in ubiattach: %s",
 				err)
