@@ -43,6 +43,7 @@ import (
 	"github.com/platinasystems/goes/cmd/fantrayd"
 	"github.com/platinasystems/goes/cmd/femtocom"
 	"github.com/platinasystems/goes/cmd/ficmd"
+	"github.com/platinasystems/goes/cmd/flash_eraseall"
 	"github.com/platinasystems/goes/cmd/function"
 	"github.com/platinasystems/goes/cmd/gpio"
 	"github.com/platinasystems/goes/cmd/grep"
@@ -133,8 +134,9 @@ var Goes = &goes.Goes{
 		"fantrayd": &fantrayd.Command{
 			Init: fantraydInit,
 		},
-		"femtocom": femtocom.Command{},
-		"fi":       &ficmd.Command{},
+		"femtocom":       femtocom.Command{},
+		"fi":             &ficmd.Command{},
+		"flash_eraseall": flash_eraseall.Command{},
 		"fspd": &fspd.Command{
 			Init: fspdInit,
 		},
