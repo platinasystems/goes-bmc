@@ -34,24 +34,11 @@ func w83795dInit() {
 	}
 
 	w83795d.WrRegDv["fan_tray"] = "fan_tray"
-	w83795d.WrRegFn["fan_tray.example"] = "example"
-	w83795d.WrRegFn["fan_tray.speed"] = "speed"
-	w83795d.WrRegFn["fan_tray.speed.return"] = "speed.return"
 
 	w83795d.WrRegDv["host"] = "host"
-	w83795d.WrRegFn["host.temp.units.C"] = "host.temp.units.C"
-	w83795d.WrRegFn["host.temp.target.units.C"] = "host.temp.target.units.C"
-	w83795d.WrRegFn["host.reset"] = "host.reset"
 
 	w83795d.WrRegDv["qsfp"] = "qsfp"
-	w83795d.WrRegFn["qsfp.temp.units.C"] = "qsfp.temp.units.C"
-	w83795d.WrRegFn["qsfp.temp.target.units.C"] = "qsfp.temp.target.units.C"
 
 	w83795d.WrRegDv["hwmon"] = "hwmon"
-	w83795d.WrRegFn["hwmon.target.units.C"] = "target.units.C"
 
-	w83795d.WrRegRng["fan_tray.speed"] = []string{"low", "med", "high", "auto", "max"}
-	w83795d.WrRegRng["hwmon.target.units.C"] = []string{"0", "60"}
-	w83795d.WrRegRng["host.reset"] = []string{"true"}
-	w83795d.WrRegRng["w83795d.example"] = []string{"true", "false"}
 }
