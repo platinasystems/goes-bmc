@@ -82,6 +82,7 @@ import (
 	"github.com/platinasystems/goes/cmd/restart"
 	"github.com/platinasystems/goes/cmd/rm"
 	"github.com/platinasystems/goes/cmd/rmmod"
+	"github.com/platinasystems/goes/cmd/scp"
 	"github.com/platinasystems/goes/cmd/slashinit"
 	"github.com/platinasystems/goes/cmd/sleep"
 	"github.com/platinasystems/goes/cmd/source"
@@ -216,6 +217,7 @@ var Goes = &goes.Goes{
 		"rm":      rm.Command{},
 		"rmmod":   rmmod.Command{},
 		"qspi":    qspi.Command{},
+		"scp":     scp.Command{},
 		"show": &goes.Goes{
 			NAME:  "show",
 			USAGE: "show OBJECT",
