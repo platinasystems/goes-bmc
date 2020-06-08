@@ -11,7 +11,7 @@
 	images {
 		kernel-1 {
 			description = "ARM BMC kernel";
-			data = /incbin/("./platina-mk1-bmc.vmlinuz");
+			data = /incbin/("platina-mk1-bmc.vmlinuz");
 			type = "kernel";
 			arch = "arm";
 			os = "linux";
@@ -28,7 +28,7 @@
 
 		ramdisk-1 {
 			description = "ARM BMC ramdisk";
-			data = /incbin/("./platina-mk1-bmc.cpio.xz");
+			data = /incbin/("platina-mk1-bmc.cpio.xz");
 			type = "ramdisk";
 			arch = "arm";
 			os = "linux";
@@ -40,7 +40,7 @@
 
 		fdt-1 {
 			description = "platina-mk1-bmc fdt";
-			data = /incbin/("./platina-mk1-bmc-dtb.bin");
+			data = /incbin/("platina-mk1-bmc-dtb.bin");
 			type = "flat_dt";
 			arch = "arm";
 			compression = "none";
