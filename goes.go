@@ -60,7 +60,6 @@ import (
 	"github.com/platinasystems/goes/cmd/iminfo"
 	"github.com/platinasystems/goes/cmd/imx6d"
 	"github.com/platinasystems/goes/cmd/insmod"
-	"github.com/platinasystems/goes/cmd/install"
 	"github.com/platinasystems/goes/cmd/ip"
 	"github.com/platinasystems/goes/cmd/kexec"
 	"github.com/platinasystems/goes/cmd/keys"
@@ -97,7 +96,6 @@ import (
 	"github.com/platinasystems/goes/cmd/truecmd"
 	"github.com/platinasystems/goes/cmd/ubi"
 	"github.com/platinasystems/goes/cmd/umount"
-	"github.com/platinasystems/goes/cmd/uninstall"
 	"github.com/platinasystems/goes/cmd/uptime"
 	"github.com/platinasystems/goes/cmd/uptimed"
 	"github.com/platinasystems/goes/cmd/version"
@@ -174,13 +172,12 @@ var Goes = &goes.Goes{
 				"bmc.temperature.units.C": 1,
 			},
 		},
-		"insmod":  insmod.Command{},
-		"install": &install.Command{},
-		"ip":      ip.Goes,
-		"ipcfg":   ipcfg.Command{},
-		"kexec":   &kexec.Command{},
-		"keys":    keys.Command{},
-		"kill":    kill.Command{},
+		"insmod": insmod.Command{},
+		"ip":     ip.Goes,
+		"ipcfg":  ipcfg.Command{},
+		"kexec":  &kexec.Command{},
+		"keys":   keys.Command{},
+		"kill":   kill.Command{},
 		"ledgpiod": &ledgpiod.Command{
 			Init: ledgpiodInit,
 		},
@@ -260,11 +257,10 @@ var Goes = &goes.Goes{
 		"ucd9090d": &ucd9090d.Command{
 			Init: ucd9090dInit,
 		},
-		"umount":    umount.Command{},
-		"uninstall": &uninstall.Command{},
-		"upgrade":   &upgrade.Command{},
-		"uptime":    uptime.Command{},
-		"uptimed":   uptimed.Command(make(chan struct{})),
+		"umount":  umount.Command{},
+		"upgrade": &upgrade.Command{},
+		"uptime":  uptime.Command{},
+		"uptimed": uptimed.Command(make(chan struct{})),
 		"w83795d": &w83795d.Command{
 			Init: w83795dInit,
 		},
