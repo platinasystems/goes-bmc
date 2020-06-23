@@ -1,4 +1,4 @@
-// Copyright © 2015-2017 Platina Systems, Inc. All rights reserved.
+// Copyright © 2015-2020 Platina Systems, Inc. All rights reserved.
 // Use of this source code is governed by the GPL-2 license described in the
 // LICENSE file.
 
@@ -22,7 +22,7 @@ import (
 
 const (
 	DfltMod     = 0755
-	DfltSrv     = "downloads.platinasystems.com"
+	DfltSrv     = "platina.io/bmc"
 	DfltVer     = "LATEST"
 	Machine     = "platina-mk1-bmc"
 	ArchiveName = Machine + ".zip"
