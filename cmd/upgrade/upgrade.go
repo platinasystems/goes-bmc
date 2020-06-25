@@ -22,7 +22,7 @@ import (
 
 const (
 	DfltMod     = 0755
-	DfltSrv     = "platina.io/bmc"
+	DfltSrv     = "platina.io/goes/bmc"
 	DfltVer     = "LATEST"
 	Machine     = "platina-mk1-bmc"
 	ArchiveName = Machine + ".zip"
