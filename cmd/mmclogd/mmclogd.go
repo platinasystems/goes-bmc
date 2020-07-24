@@ -9,10 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/platinasystems/goes/cmd"
-	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/atsock"
-	"github.com/platinasystems/redis/publisher"
+	"github.com/platinasystems/goes"
+	"github.com/platinasystems/goes/cmd"
+	"github.com/platinasystems/goes/external/redis/publisher"
+	"github.com/platinasystems/goes/lang"
 )
 
 const (
@@ -42,7 +43,6 @@ type Info struct {
 	mutex   sync.Mutex
 	rpc     *atsock.RpcServer
 	pub     *publisher.Publisher
-	stop    chan struct{}
 	logA    string
 	logB    string
 	seq_end uint64
@@ -80,18 +80,13 @@ func (c *Command) Main(...string) error {
 	t := time.NewTicker(15 * time.Second)
 	for {
 		select {
-		case <-c.stop:
+		case <-goes.Stop:
 			return nil
 		case <-t.C:
 			if err := c.update(); err != nil {
 			}
 		}
 	}
-	return nil
-}
-
-func (c *Command) Close() error {
-	close(c.stop)
 	return nil
 }
 

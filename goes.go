@@ -102,8 +102,8 @@ import (
 	"github.com/platinasystems/goes/cmd/w83795d"
 	"github.com/platinasystems/goes/cmd/watchdog"
 	"github.com/platinasystems/goes/cmd/wget"
+	"github.com/platinasystems/goes/external/redis/publisher"
 	"github.com/platinasystems/goes/lang"
-	"github.com/platinasystems/redis/publisher"
 )
 
 var Goes = &goes.Goes{
@@ -165,7 +165,7 @@ var Goes = &goes.Goes{
 		"hkeys":   hkeys.Command{},
 		"hset":    hset.Command{},
 		"i2c":     i2c.Command{},
-		"i2cd":    &i2cd.Command{},
+		"i2cd":    i2cd.Command{},
 		"if":      &ifcmd.Command{},
 		"imx6d": &imx6d.Command{
 			VpageByKey: map[string]uint8{
@@ -260,7 +260,7 @@ var Goes = &goes.Goes{
 		"umount":  umount.Command{},
 		"upgrade": &upgrade.Command{},
 		"uptime":  uptime.Command{},
-		"uptimed": uptimed.Command(make(chan struct{})),
+		"uptimed": uptimed.Command{},
 		"w83795d": &w83795d.Command{
 			Init: w83795dInit,
 		},

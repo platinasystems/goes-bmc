@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/platinasystems/redis"
+	"github.com/platinasystems/goes/external/redis"
 )
 
 const name = "platina-mk1-bmc"

@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
-	"github.com/platinasystems/redis"
+	"github.com/platinasystems/goes/external/redis"
 )
 
 func ledgpiodInit() {

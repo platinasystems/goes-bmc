@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/platinasystems/eeprom"
+	"github.com/platinasystems/goes/external/redis"
 	"github.com/platinasystems/log"
-	"github.com/platinasystems/redis"
 )
 
 const (
@@ -112,22 +112,31 @@ func diagProm() error {
 	}
 
 	d := eeprom.Device{
-		BusIndex: 0,
+		BusIndex:   0,
 		BusAddress: 0x55,
 	}
 	if err := d.GetInfo(); err != nil {
 		return err
 	}
 	switch d.Fields.DeviceVersion {
-		case 0xff: hostBusAddr = 0x51	//alpha
-		case 0x00: hostBusAddr = 0x51	//alpha
-		case 0x01: hostBusAddr = 0x51	//beta
-		case 0x02: hostBusAddr = 0x51	//reserved for alpha rework
-		case 0x03: hostBusAddr = 0x51	//reserved for beta rework
-		case 0x0a: hostBusAddr = 0x51	//pvt
-		case 0x0b: hostBusAddr = 0x51	//pvt2
-		case 0x0c: hostBusAddr = 0x53	//pvt2 w/ uart&i2c rework
-		default: hostBusAddr = 0x53
+	case 0xff:
+		hostBusAddr = 0x51 //alpha
+	case 0x00:
+		hostBusAddr = 0x51 //alpha
+	case 0x01:
+		hostBusAddr = 0x51 //beta
+	case 0x02:
+		hostBusAddr = 0x51 //reserved for alpha rework
+	case 0x03:
+		hostBusAddr = 0x51 //reserved for beta rework
+	case 0x0a:
+		hostBusAddr = 0x51 //pvt
+	case 0x0b:
+		hostBusAddr = 0x51 //pvt2
+	case 0x0c:
+		hostBusAddr = 0x53 //pvt2 w/ uart&i2c rework
+	default:
+		hostBusAddr = 0x53
 	}
 
 	//select host or bmc prom

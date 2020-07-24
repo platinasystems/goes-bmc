@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/platinasystems/goes/external/redis"
 	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/log"
-	"github.com/platinasystems/redis"
 )
 
 const (

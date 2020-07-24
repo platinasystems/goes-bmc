@@ -18,15 +18,16 @@ import (
 	"time"
 
 	"github.com/platinasystems/atsock"
+	"github.com/platinasystems/goes"
 	"github.com/platinasystems/goes/cmd"
+	"github.com/platinasystems/goes/external/redis"
+	"github.com/platinasystems/goes/external/redis/publisher"
+	"github.com/platinasystems/goes/external/redis/rpc/args"
+	"github.com/platinasystems/goes/external/redis/rpc/reply"
 	"github.com/platinasystems/goes/lang"
 	"github.com/platinasystems/gpio"
 	"github.com/platinasystems/i2c"
 	"github.com/platinasystems/log"
-	"github.com/platinasystems/redis"
-	"github.com/platinasystems/redis/publisher"
-	"github.com/platinasystems/redis/rpc/args"
-	"github.com/platinasystems/redis/rpc/reply"
 )
 
 var (
@@ -57,7 +58,6 @@ type Info struct {
 	mutex sync.Mutex
 	rpc   *atsock.RpcServer
 	pub   *publisher.Publisher
-	stop  chan struct{}
 	last  map[string]float64
 	lasts map[string]string
 	lastu map[string]uint16
@@ -105,7 +105,6 @@ func (c *Command) Main(...string) error {
 		return err
 	}
 
-	c.stop = make(chan struct{})
 	c.last = make(map[string]float64)
 	c.lasts = make(map[string]string)
 	c.lastu = make(map[string]uint16)
@@ -134,7 +133,7 @@ func (c *Command) Main(...string) error {
 	tm := time.NewTicker(5 * time.Second)
 	for {
 		select {
-		case <-c.stop:
+		case <-goes.Stop:
 			return nil
 		case <-t.C:
 			c.update()
@@ -142,11 +141,6 @@ func (c *Command) Main(...string) error {
 			c.updateMon()
 		}
 	}
-	return nil
-}
-
-func (c *Command) Close() error {
-	close(c.stop)
 	return nil
 }
 

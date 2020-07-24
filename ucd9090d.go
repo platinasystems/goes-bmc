@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/platinasystems/goes-bmc/cmd/ucd9090d"
-	"github.com/platinasystems/redis"
+	"github.com/platinasystems/goes/external/redis"
 )
 
 func ucd9090dInit() {

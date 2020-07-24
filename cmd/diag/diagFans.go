@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/platinasystems/goes/cmd/w83795d"
-	"github.com/platinasystems/redis"
+	"github.com/platinasystems/goes/external/redis"
 )
 
 func diagFans() error {
