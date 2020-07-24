@@ -153,6 +153,7 @@ var Goes = &goes.Goes{
 				[]string{"uptimed"},
 				[]string{"ucd9090d"},
 				[]string{"w83795d"},
+				[]string{"watchdog"},
 			},
 		},
 		"gpio":    gpio.Command{},
