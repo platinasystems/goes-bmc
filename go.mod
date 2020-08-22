@@ -4,7 +4,7 @@ require (
 	github.com/platinasystems/atsock v1.1.0
 	github.com/platinasystems/eeprom v1.0.0
 	github.com/platinasystems/flags v1.0.1
-	github.com/platinasystems/goes v1.17.1
+	github.com/platinasystems/goes v1.17.3
 	github.com/platinasystems/gpio v1.3.0
 	github.com/platinasystems/i2c v1.2.1
 	github.com/platinasystems/log v1.2.1
