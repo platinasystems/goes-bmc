@@ -17,11 +17,8 @@ var pm ucd9090d.I2cDev
 func diagPower() error {
 
 	const (
-		ucd9090dBus    = 0
-		ucd9090dAdr    = 0x34
-		ucd9090dMuxBus = 0
-		ucd9090dMuxAdr = 0x76
-		ucd9090dMuxVal = 0x01
+		ucd9090dBus = 4
+		ucd9090dAdr = 0x34
 
 		TOR1  uint8 = 0x00
 		CH1   uint8 = 0x01
@@ -29,7 +26,7 @@ func diagPower() error {
 		CH1LC uint8 = 0x05
 	)
 
-	pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr, ucd9090dMuxBus, ucd9090dMuxAdr, ucd9090dMuxVal}
+	pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr}
 
 	d := eeprom.Device{
 		BusIndex:   0,
@@ -51,8 +48,6 @@ func diagPower() error {
 			return err
 		}
 	} else if (d.Fields.ChassisType == CH1) && (d.Fields.BoardType == CH1MC) {
-		pm.MuxAddr = 0x71
-		pm.MuxValue = 0x02
 		pm.Addr = 0x7e
 		diagPowerCh1Mc()
 	} else if (d.Fields.ChassisType == CH1) && (d.Fields.BoardType == CH1MC) {
@@ -177,13 +172,10 @@ func diagPowerCh1Lc() {
 
 func diagLoggedFaults() error {
 	const (
-		ucd9090dBus    = 0
-		ucd9090dAdr    = 0x34
-		ucd9090dMuxBus = 0
-		ucd9090dMuxAdr = 0x76
-		ucd9090dMuxVal = 0x01
+		ucd9090dBus = 4
+		ucd9090dAdr = 0x34
 	)
-	var pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr, ucd9090dMuxBus, ucd9090dMuxAdr, ucd9090dMuxVal}
+	var pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr}
 
 	d := eeprom.Device{
 		BusIndex:   0,

@@ -13,11 +13,8 @@ import (
 
 func ucd9090dInit() {
 	ver := 0
-	ucd9090d.Vdev.Bus = 0
+	ucd9090d.Vdev.Bus = 4
 	ucd9090d.Vdev.Addr = 0x0 //update after eeprom read
-	ucd9090d.Vdev.MuxBus = 0
-	ucd9090d.Vdev.MuxAddr = 0x76
-	ucd9090d.Vdev.MuxValue = 0x01
 	s, err := redis.Hget(redis.DefaultHash, "eeprom.DeviceVersion")
 	if err != nil {
 		ucd9090d.Vdev.Addr = 0x34

@@ -69,11 +69,8 @@ type Info struct {
 }
 
 type I2cDev struct {
-	Bus      int
-	Addr     int
-	MuxBus   int
-	MuxAddr  int
-	MuxValue int
+	Bus  int
+	Addr int
 }
 
 func (*Command) String() string { return "ucd9090d" }
@@ -264,15 +261,14 @@ func (h *I2cDev) Vout(i uint8) (float64, error) {
 	r.Page.set(h, i)
 	r.VoutMode.get(h)
 	r.ReadVout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	n := s[3].D[0] & 0xf
+	n := s[2].D[0] & 0xf
 	n--
 	n = (n ^ 0xf) & 0xf
-	v := uint16(s[5].D[1])<<8 | uint16(s[5].D[0])
+	v := uint16(s[4].D[1])<<8 | uint16(s[4].D[0])
 
 	nn := float64(n) * (-1)
 	vv := float64(v) * (math.Exp2(nn))
@@ -283,13 +279,12 @@ func (h *I2cDev) Vout(i uint8) (float64, error) {
 func (h *I2cDev) PowerCycles() (string, error) {
 	r := getRegs()
 	r.LoggedFaultIndex.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
 
-	d := s[1].D[1]
+	d := s[0].D[1]
 
 	var milli uint32
 	var seconds uint32
@@ -312,12 +307,12 @@ func (h *I2cDev) PowerCycles() (string, error) {
 			new := false
 			if loggedFaultCount != d {
 				loggedFaultCount = d
-				copy(lastLoggedFaultDetail[:], s[1].D[0:12])
+				copy(lastLoggedFaultDetail[:], s[0].D[0:12])
 				new = true
 			} else {
 				for j := 0; j < 12; j++ {
-					if s[1].D[j] != lastLoggedFaultDetail[j] {
-						copy(lastLoggedFaultDetail[:], s[1].D[0:12])
+					if s[0].D[j] != lastLoggedFaultDetail[j] {
+						copy(lastLoggedFaultDetail[:], s[0].D[0:12])
 						new = true
 						break
 					}
@@ -352,18 +347,15 @@ func (h *I2cDev) PowerCycles() (string, error) {
 				} else {
 					ledgpiod.Vdev.Addr = 0x75
 				}
-				ledgpiod.Vdev.Bus = 0
-				ledgpiod.Vdev.MuxBus = 0x0
-				ledgpiod.Vdev.MuxAddr = 0x76
-				ledgpiod.Vdev.MuxValue = 0x2
+				ledgpiod.Vdev.Bus = 5
 				ledgpiod.Vdev.LedFpReinit()
 			}
 		}
-		milli = uint32(s[1].D[5]) + uint32(s[1].D[4])<<8 + uint32(s[1].D[3])<<16 + uint32(s[1].D[2])<<24
+		milli = uint32(s[0].D[5]) + uint32(s[0].D[4])<<8 + uint32(s[0].D[3])<<16 + uint32(s[0].D[2])<<24
 		seconds = milli / 1000
 		timestamp := time.Unix(int64(seconds), 0).Format(time.RFC3339)
 
-		faultType = (s[1].D[6] >> 3) & 0xF
+		faultType = (s[0].D[6] >> 3) & 0xF
 
 		if !strings.Contains(pwrCycles, timestamp) && (faultType == 0 || faultType == 1) {
 			pwrCycles += timestamp + "."
@@ -377,13 +369,12 @@ func (h *I2cDev) PowerCycles() (string, error) {
 func (h *I2cDev) LoggedFaultDetail() (string, error) {
 	r := getRegs()
 	r.LoggedFaultIndex.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
 
-	d := s[1].D[1]
+	d := s[0].D[1]
 
 	var milli uint32
 	var page uint8
@@ -410,12 +401,12 @@ func (h *I2cDev) LoggedFaultDetail() (string, error) {
 			new := false
 			if loggedFaultCount != d {
 				loggedFaultCount = d
-				copy(lastLoggedFaultDetail[:], s[1].D[0:12])
+				copy(lastLoggedFaultDetail[:], s[0].D[0:12])
 				new = true
 			} else {
 				for j := 0; j < 12; j++ {
-					if s[1].D[j] != lastLoggedFaultDetail[j] {
-						copy(lastLoggedFaultDetail[:], s[1].D[0:12])
+					if s[0].D[j] != lastLoggedFaultDetail[j] {
+						copy(lastLoggedFaultDetail[:], s[0].D[0:12])
 						new = true
 						break
 					}
@@ -425,13 +416,13 @@ func (h *I2cDev) LoggedFaultDetail() (string, error) {
 				return "", nil
 			}
 		}
-		milli = uint32(s[1].D[5]) + uint32(s[1].D[4])<<8 + uint32(s[1].D[3])<<16 + uint32(s[1].D[2])<<24
+		milli = uint32(s[0].D[5]) + uint32(s[0].D[4])<<8 + uint32(s[0].D[3])<<16 + uint32(s[0].D[2])<<24
 		seconds = milli / 1000
 		timestamp := time.Unix(int64(seconds), 0).Format(time.RFC3339)
 
-		faultType = (s[1].D[6] >> 3) & 0xF
-		paged = s[1].D[6] & 0x80 >> 7
-		page = ((s[1].D[7] & 0x80) >> 7) + ((s[1].D[6] & 0x7) << 1)
+		faultType = (s[0].D[6] >> 3) & 0xF
+		paged = s[0].D[6] & 0x80 >> 7
+		page = ((s[0].D[7] & 0x80) >> 7) + ((s[0].D[6] & 0x7) << 1)
 
 		if paged == 1 {
 			switch page {
