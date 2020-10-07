@@ -20,13 +20,10 @@ func diagFans() error {
 	var d0, d1 uint8
 
 	const (
-		w83795dBus    = 0
-		w83795dAdr    = 0x2f
-		w83795dMuxBus = 0
-		w83795dMuxAdr = 0x76
-		w83795dMuxVal = 0x80
+		w83795dBus = 11
+		w83795dAdr = 0x2f
 	)
-	var hw = w83795d.I2cDev{w83795dBus, w83795dAdr, w83795dMuxBus, w83795dMuxAdr, w83795dMuxVal}
+	var hw = w83795d.I2cDev{w83795dBus, w83795dAdr}
 
 	fmt.Printf("\n%15s|%25s|%10s|%10s|%10s|%10s|%6s|%35s\n", "function", "parameter", "units", "value", "min", "max", "result", "description")
 	fmt.Printf("---------------|-------------------------|----------|----------|----------|----------|------|-----------------------------------\n")

@@ -73,11 +73,8 @@ type Info struct {
 }
 
 type I2cDev struct {
-	Bus      int
-	Addr     int
-	MuxBus   int
-	MuxAddr  int
-	MuxValue int
+	Bus  int
+	Addr int
 }
 
 func (*Command) String() string { return "w83795d" }
@@ -282,13 +279,12 @@ func (h *I2cDev) FrontTemp() (string, error) {
 	r.BankSelect.set(h, 0x80)
 	r.FrontTemp.get(h)
 	r.FractionLSB.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint8(s[3].D[0])
-	u := uint8(s[5].D[0])
+	t := uint8(s[2].D[0])
+	u := uint8(s[4].D[0])
 	v := float64(t) + ((float64(u >> 7)) * 0.25)
 	strconv.FormatFloat(v, 'f', 3, 64)
 	return strconv.FormatFloat(v, 'f', 3, 64), nil
@@ -299,13 +295,12 @@ func (h *I2cDev) RearTemp() (string, error) {
 	r.BankSelect.set(h, 0x80)
 	r.RearTemp.get(h)
 	r.FractionLSB.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint8(s[3].D[0])
-	u := uint8(s[5].D[0])
+	t := uint8(s[2].D[0])
+	u := uint8(s[4].D[0])
 	v := float64(t) + ((float64(u >> 7)) * 0.25)
 	return strconv.FormatFloat(v, 'f', 3, 64), nil
 }
@@ -339,13 +334,12 @@ func (h *I2cDev) FanCount(i uint8) (uint16, error) {
 		r.FractionLSB.get(h)
 		r.FanCount[i].get(h)
 		r.FractionLSB.get(h)
-		closeMux(h)
 		err := DoI2cRpc()
 		if err != nil {
 			return 0, err
 		}
-		c := [4]byte{s[3].D[0], s[7].D[0], s[11].D[0], s[15].D[0]}
-		l := [4]byte{s[5].D[0], s[9].D[0], s[13].D[0], s[17].D[0]}
+		c := [4]byte{s[2].D[0], s[6].D[0], s[10].D[0], s[14].D[0]}
+		l := [4]byte{s[4].D[0], s[8].D[0], s[12].D[0], s[16].D[0]}
 
 		if c[0] == c[1] && l[0] == l[1] {
 			t = c[0]
@@ -372,7 +366,6 @@ func (h *I2cDev) FanInit() error {
 	r0 := getRegsBank0()
 	r0.BankSelect.set(h, 0x80)
 	r0.Configuration.set(h, 0x9c)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -385,7 +378,6 @@ func (h *I2cDev) FanInit() error {
 	//set up clk frequency and dividers
 	r2.FanPwmPrescale1.set(h, 0x84)
 	r2.FanPwmPrescale2.set(h, 0x84)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
@@ -397,7 +389,6 @@ func (h *I2cDev) FanInit() error {
 	//enable temperature monitoring
 	r0.BankSelect.set(h, 0x80)
 	r0.TempCntl2.set(h, tempCtrl2)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
@@ -407,7 +398,6 @@ func (h *I2cDev) FanInit() error {
 	time.Sleep(500 * time.Millisecond)
 	r0.BankSelect.set(h, 0x80)
 	r0.Configuration.set(h, 0x1d)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
@@ -438,7 +428,6 @@ func (h *I2cDev) SetFanDuty(d uint8) error {
 	r2.TempToFanMap2.set(h, 0x0)
 	r2.FanOutValue1.set(h, d)
 	r2.FanOutValue2.set(h, d)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -470,7 +459,6 @@ func (h *I2cDev) SetFanSpeed(w string) error {
 			//set step up and down time to 1s
 			r2.FanStepUpTime.set(h, 0x0a)
 			r2.FanStepDownTime.set(h, 0x0a)
-			closeMux(h)
 			err := DoI2cRpc()
 			if err != nil {
 				return err
@@ -483,7 +471,6 @@ func (h *I2cDev) SetFanSpeed(w string) error {
 			//set fan stop speed
 			r2.FanStopValue1.set(h, 0x30)
 			r2.FanStopValue2.set(h, 0x30)
-			closeMux(h)
 			err = DoI2cRpc()
 			if err != nil {
 				return err
@@ -496,7 +483,6 @@ func (h *I2cDev) SetFanSpeed(w string) error {
 			//set target temps to 50°C
 			r2.TargetTemp1.set(h, 0x32)
 			r2.TargetTemp2.set(h, 0x32)
-			closeMux(h)
 			err = DoI2cRpc()
 			if err != nil {
 				return err
@@ -512,7 +498,6 @@ func (h *I2cDev) SetFanSpeed(w string) error {
 			//enable temp control of fans
 			r2.TempToFanMap1.set(h, 0xff)
 			r2.TempToFanMap2.set(h, 0xff)
-			closeMux(h)
 			err = DoI2cRpc()
 			if err != nil {
 				return err
@@ -540,12 +525,11 @@ func (h *I2cDev) GetFanDuty() (uint8, error) {
 
 	r2.BankSelect.set(h, 0x82)
 	r2.FanOutValue1.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	m := uint8(s[3].D[0])
+	m := uint8(s[2].D[0])
 	return m, nil
 
 }
@@ -556,13 +540,12 @@ func (h *I2cDev) GetFanSpeed() (string, error) {
 	r2.BankSelect.set(h, 0x82)
 	r2.TempToFanMap1.get(h)
 	r2.FanOutValue1.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "error", err
 	}
-	t := uint8(s[3].D[0])
-	m := uint8(s[5].D[0])
+	t := uint8(s[2].D[0])
+	m := uint8(s[4].D[0])
 
 	if t == 0xff {
 		return "auto", nil
@@ -649,7 +632,6 @@ func (h *I2cDev) SetHwmTarget() error {
 	r2.BankSelect.set(h, 0x82)
 	r2.TargetTemp1.set(h, hwmTarget)
 	r2.TargetTemp2.set(h, hwmTarget)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -663,15 +645,14 @@ func (h *I2cDev) GetHwmTarget() (uint16, error) {
 	r2.BankSelect.set(h, 0x82)
 	r2.TargetTemp1.get(h)
 	r2.TargetTemp2.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
 
 	m := uint16(0)
-	if s[3].D[0] == s[5].D[0] {
-		m = uint16(s[3].D[0])
+	if s[2].D[0] == s[4].D[0] {
+		m = uint16(s[2].D[0])
 	}
 	return m, nil
 }

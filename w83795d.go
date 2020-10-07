@@ -7,11 +7,8 @@ package main
 import "github.com/platinasystems/goes-bmc/cmd/w83795d"
 
 func w83795dInit() {
-	w83795d.Vdev.Bus = 0
+	w83795d.Vdev.Bus = 11
 	w83795d.Vdev.Addr = 0x2f
-	w83795d.Vdev.MuxBus = 0
-	w83795d.Vdev.MuxAddr = 0x76
-	w83795d.Vdev.MuxValue = 0x80
 
 	w83795d.VpageByKey = map[string]uint8{
 		"fan_tray.1.1.speed.units.rpm": 1,

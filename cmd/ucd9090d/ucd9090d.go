@@ -331,11 +331,8 @@ func (h *I2cDev) PowerCycles() (string, error) {
 				time.Sleep(5 * time.Second)
 
 				log.Print("notice: re-init fan controller")
-				w83795d.Vdev.Bus = 0
+				w83795d.Vdev.Bus = 11
 				w83795d.Vdev.Addr = 0x2f
-				w83795d.Vdev.MuxBus = 0
-				w83795d.Vdev.MuxAddr = 0x76
-				w83795d.Vdev.MuxValue = 0x80
 				w83795d.Vdev.FanInit()
 
 				log.Print("notice: re-init fan trays")
