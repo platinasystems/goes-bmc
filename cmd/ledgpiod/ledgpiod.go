@@ -81,11 +81,8 @@ type Info struct {
 }
 
 type I2cDev struct {
-	Bus      int
-	Addr     int
-	MuxBus   int
-	MuxAddr  int
-	MuxValue int
+	Bus  int
+	Addr int
 }
 
 func (*Command) String() string { return "ledgpiod" }
@@ -202,12 +199,11 @@ func (h *I2cDev) LedFpInit() error {
 
 	r := getRegs()
 	r.Output[0].get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
 	}
-	o := s[1].D[0]
+	o := s[0].D[0]
 
 	//on bmc boot up set front panel SYS led to green, FAN led to yellow, let PSU drive PSU LEDs
 	d = 0xff ^ (sysLed | fanLed)
@@ -215,24 +211,21 @@ func (h *I2cDev) LedFpInit() error {
 	o |= sysLedGreen | fanLedYellow
 
 	r.Output[0].set(h, o)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
 	}
 
 	r.Config[0].get(h)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
 	}
-	o = s[1].D[0]
+	o = s[0].D[0]
 	o |= psuLed[0] | psuLed[1]
 	o &= (sysLed | fanLed) ^ 0xff
 
 	r.Config[0].set(h, o)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
@@ -247,17 +240,15 @@ func (h *I2cDev) LedFpReinit() error {
 	r := getRegs()
 
 	r.Config[0].get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
 	}
-	o := s[1].D[0]
+	o := s[0].D[0]
 	o |= psuLed[0] | psuLed[1]
 	o &= (sysLed | fanLed) ^ 0xff
 
 	r.Config[0].set(h, o)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return err
@@ -296,17 +287,15 @@ func (h *I2cDev) LedStatus() error {
 			//if any fan tray is failed or not installed, set front panel FAN led to yellow
 			if strings.Contains(p, "warning") && !strings.Contains(lastFanStatus[j], "not installed") {
 				r.Output[0].get(h)
-				closeMux(h)
 				err := DoI2cRpc()
 				if err != nil {
 					return err
 				}
-				o = s[1].D[0]
+				o = s[0].D[0]
 				d = 0xff ^ fanLed
 				o &= d
 				o |= fanLedYellow
 				r.Output[0].set(h, o)
-				closeMux(h)
 				err = DoI2cRpc()
 				if err != nil {
 					return err
@@ -318,17 +307,15 @@ func (h *I2cDev) LedStatus() error {
 				}
 			} else if strings.Contains(p, "not installed") {
 				r.Output[0].get(h)
-				closeMux(h)
 				err := DoI2cRpc()
 				if err != nil {
 					return err
 				}
-				o = s[1].D[0]
+				o = s[0].D[0]
 				d = 0xff ^ fanLed
 				o &= d
 				o |= fanLedYellow
 				r.Output[0].set(h, o)
-				closeMux(h)
 				err = DoI2cRpc()
 				if err != nil {
 					return err
@@ -357,17 +344,15 @@ func (h *I2cDev) LedStatus() error {
 			}
 			if allStat {
 				r.Output[0].get(h)
-				closeMux(h)
 				err := DoI2cRpc()
 				if err != nil {
 					return err
 				}
-				o = s[1].D[0]
+				o = s[0].D[0]
 				d = 0xff ^ fanLed
 				o &= d
 				o |= fanLedGreen
 				r.Output[0].set(h, o)
-				closeMux(h)
 				err = DoI2cRpc()
 				if err != nil {
 					return err
@@ -385,13 +370,12 @@ func (h *I2cDev) LedStatus() error {
 		if lastPsuStatus[j] != p {
 			r.Output[0].get(h)
 			r.Config[0].get(h)
-			closeMux(h)
 			err := DoI2cRpc()
 			if err != nil {
 				return err
 			}
-			o = s[1].D[0]
-			c = s[3].D[0]
+			o = s[0].D[0]
+			c = s[2].D[0]
 			//if PSU is not installed or installed and powered on, set front panel PSU led to off or green (PSU drives)
 			if strings.Contains(p, "not_installed") || strings.Contains(p, "powered_on") {
 				c |= psuLed[j]
@@ -404,7 +388,6 @@ func (h *I2cDev) LedStatus() error {
 			}
 			r.Output[0].set(h, o)
 			r.Config[0].set(h, c)
-			closeMux(h)
 			err = DoI2cRpc()
 			if err != nil {
 				return err

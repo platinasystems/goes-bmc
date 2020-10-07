@@ -16,11 +16,8 @@ func ledgpiodInit() {
 		"system.fan_direction": 0,
 	}
 	ver := 0
-	ledgpiod.Vdev.Bus = 0
-	ledgpiod.Vdev.Addr = 0x0
-	ledgpiod.Vdev.MuxBus = 0x0
-	ledgpiod.Vdev.MuxAddr = 0x76
-	ledgpiod.Vdev.MuxValue = 0x2
+	ledgpiod.Vdev.Bus = 5
+	ledgpiod.Vdev.Addr = 0x75
 	s, err := redis.Hget(redis.DefaultHash, "eeprom.DeviceVersion")
 	if err != nil {
 		ledgpiod.Vdev.Addr = 0x75
