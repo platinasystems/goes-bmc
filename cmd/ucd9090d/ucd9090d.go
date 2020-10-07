@@ -17,9 +17,9 @@ import (
 
 	"github.com/platinasystems/atsock"
 	"github.com/platinasystems/goes"
+	"github.com/platinasystems/goes-bmc/cmd/fantrayd"
 	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
 	"github.com/platinasystems/goes/cmd"
-	"github.com/platinasystems/goes/cmd/fantrayd"
 	"github.com/platinasystems/goes/cmd/w83795d"
 	"github.com/platinasystems/goes/external/redis"
 	"github.com/platinasystems/goes/external/redis/publisher"

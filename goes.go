@@ -9,6 +9,7 @@ import (
 
 	"github.com/platinasystems/goes"
 	"github.com/platinasystems/goes-bmc/cmd/diag"
+	"github.com/platinasystems/goes-bmc/cmd/fantrayd"
 	"github.com/platinasystems/goes-bmc/cmd/fspd"
 	"github.com/platinasystems/goes-bmc/cmd/ipcfg"
 	"github.com/platinasystems/goes-bmc/cmd/ledgpiod"
@@ -40,7 +41,6 @@ import (
 	"github.com/platinasystems/goes/cmd/exit"
 	"github.com/platinasystems/goes/cmd/export"
 	"github.com/platinasystems/goes/cmd/falsecmd"
-	"github.com/platinasystems/goes/cmd/fantrayd"
 	"github.com/platinasystems/goes/cmd/femtocom"
 	"github.com/platinasystems/goes/cmd/ficmd"
 	"github.com/platinasystems/goes/cmd/flash_eraseall"
