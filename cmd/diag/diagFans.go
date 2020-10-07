@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/platinasystems/goes/cmd/w83795d"
+	"github.com/platinasystems/goes-bmc/cmd/w83795d"
 	"github.com/platinasystems/goes/external/redis"
 )
 

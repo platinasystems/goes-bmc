@@ -4,7 +4,7 @@
 
 package main
 
-import "github.com/platinasystems/goes/cmd/w83795d"
+import "github.com/platinasystems/goes-bmc/cmd/w83795d"
 
 func w83795dInit() {
 	w83795d.Vdev.Bus = 0
