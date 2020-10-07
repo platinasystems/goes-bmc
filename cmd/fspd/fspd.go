@@ -71,9 +71,6 @@ type I2cDev struct {
 	Bus        int
 	Addr       int
 	AddrProm   int
-	MuxBus     int
-	MuxAddr    int
-	MuxValue   int
 	GpioPwrok  string
 	GpioPrsntL string
 	GpioPwronL string
@@ -579,12 +576,11 @@ func (h *I2cDev) convert(v uint16) (float64, error) {
 		r := getRegs()
 		var nn float64
 		r.VoutMode.get(h)
-		closeMux(h)
 		err := DoI2cRpc()
 		if err != nil {
 			return 0, err
 		}
-		n := (uint16(s[1].D[0])) & 0x1f
+		n := (uint16(s[0].D[0])) & 0x1f
 		if n > 0xf {
 			n = ((n ^ 0x1f) + 1) & 0x1f
 			nn = float64(n) * (-1)
@@ -602,19 +598,17 @@ func (h *I2cDev) convert(v uint16) (float64, error) {
 func (h *I2cDev) Page() (uint16, error) {
 	r := getRegs()
 	r.Page.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) PageWr(i uint16) error {
 	r := getRegs()
 	r.Page.set(h, uint8(i))
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -625,84 +619,77 @@ func (h *I2cDev) PageWr(i uint16) error {
 func (h *I2cDev) StatusWord() (uint16, error) {
 	r := getRegs()
 	r.StatusWord.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	return uint16(t), nil
 }
 
 func (h *I2cDev) StatusVout() (uint16, error) {
 	r := getRegs()
 	r.StatusVout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) StatusIout() (uint16, error) {
 	r := getRegs()
 	r.StatusIout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) StatusInput() (uint16, error) {
 	r := getRegs()
 	r.StatusInput.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) StatusTemp() (uint16, error) {
 	r := getRegs()
 	r.StatusTemp.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) StatusFans() (uint16, error) {
 	r := getRegs()
 	r.StatusFans.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
 func (h *I2cDev) Vin() (string, error) {
 	r := getRegs()
 	r.Vin.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	v, errs := h.convert(t)
 	if errs != nil {
 		return "", errs
@@ -713,12 +700,11 @@ func (h *I2cDev) Vin() (string, error) {
 func (h *I2cDev) Iin() (string, error) {
 	r := getRegs()
 	r.Iin.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	v, errs := h.convert(t)
 	if errs != nil {
 		return "", errs
@@ -730,13 +716,12 @@ func (h *I2cDev) Vout() (string, error) {
 	r := getRegs()
 	r.Vout.get(h)
 	r.VoutMode.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	vout := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
-	voutMode := uint8(s[3].D[0])
+	vout := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
+	voutMode := uint8(s[2].D[0])
 	var v float64
 	var errs error
 	if !strings.Contains(h.Model, "CRPS800") {
@@ -754,12 +739,11 @@ func (h *I2cDev) Vout() (string, error) {
 func (h *I2cDev) Iout() (string, error) {
 	r := getRegs()
 	r.Iout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	var v float64
 	if strings.Contains(h.Id, "Great Wall") {
 		v, err = h.convert(t)
@@ -778,12 +762,11 @@ func (h *I2cDev) Iout() (string, error) {
 func (h *I2cDev) Temp1() (string, error) {
 	r := getRegs()
 	r.Temp1.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	var v float64
 	if strings.Contains(h.Id, "Great Wall") {
 		v, err = h.convert(t)
@@ -799,12 +782,11 @@ func (h *I2cDev) Temp1() (string, error) {
 func (h *I2cDev) Temp2() (string, error) {
 	r := getRegs()
 	r.Temp2.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	var v float64
 	if strings.Contains(h.Id, "Great Wall") {
 		v, err = h.convert(t)
@@ -820,12 +802,11 @@ func (h *I2cDev) Temp2() (string, error) {
 func (h *I2cDev) FanSpeed() (string, error) {
 	r := getRegs()
 	r.FanSpeed.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	var v float64
 	if strings.Contains(h.Id, "Great Wall") {
 		v, err = h.convert(t)
@@ -841,12 +822,11 @@ func (h *I2cDev) FanSpeed() (string, error) {
 func (h *I2cDev) Pout() (string, error) {
 	r := getRegs()
 	r.Pout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	v, errs := h.convert(t)
 	if errs != nil {
 		return "", errs
@@ -857,12 +837,11 @@ func (h *I2cDev) Pout() (string, error) {
 func (h *I2cDev) Pin() (string, error) {
 	r := getRegs()
 	r.Pin.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "", err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	v, errs := h.convert(t)
 	if errs != nil {
 		return "", errs
@@ -873,24 +852,22 @@ func (h *I2cDev) Pin() (string, error) {
 func (h *I2cDev) PoutRaw() (uint16, error) {
 	r := getRegs()
 	r.Pout.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	return t, nil
 }
 
 func (h *I2cDev) PinRaw() (uint16, error) {
 	r := getRegs()
 	r.Pin.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+	t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 	return t, nil
 }
 
@@ -898,12 +875,11 @@ func (h *I2cDev) ModeRaw() (uint16, error) {
 	if h.Id == "Great Wall" {
 		r := getRegs()
 		r.Pin.get(h)
-		closeMux(h)
 		err := DoI2cRpc()
 		if err != nil {
 			return 0, err
 		}
-		t := uint16(s[1].D[0]) + (uint16(s[1].D[1]) << 8)
+		t := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
 		return t, nil
 	} else {
 		return 0, nil
@@ -913,12 +889,11 @@ func (h *I2cDev) ModeRaw() (uint16, error) {
 func (h *I2cDev) PMBusRev() (uint16, error) {
 	r := getRegs()
 	r.PMBusRev.get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return 0, err
 	}
-	t := uint16(s[1].D[0])
+	t := uint16(s[0].D[0])
 	return uint16(t), nil
 }
 
@@ -926,17 +901,16 @@ func (h *I2cDev) MfgIdent() (string, error) {
 	var l byte = 15
 	r := getRegs()
 	r.MfgId.get(h, l)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "error", err
 	}
-	if s[1].D[1] == 0xff {
+	if s[0].D[1] == 0xff {
 		h.Id = "FSP"
 		return "FSP", nil
 	}
-	n := s[1].D[1] + 2
-	t := string(s[1].D[2:n])
+	n := s[0].D[1] + 2
+	t := string(s[0].D[2:n])
 	if t == "Not Supported" {
 		t = "FSP"
 	}
@@ -949,16 +923,15 @@ func (h *I2cDev) MfgModel() (string, error) {
 	var l byte = 15
 	r := getRegs()
 	r.MfgMod.get(h, l)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "error", err
 	}
-	if s[1].D[1] == 0xff {
+	if s[0].D[1] == 0xff {
 		return "FSP", nil
 	}
-	n := s[1].D[1] + 2
-	t := string(s[1].D[2:n])
+	n := s[0].D[1] + 2
+	t := string(s[0].D[2:n])
 	if t == "Not Supported" {
 		t = "FSP"
 	}
@@ -973,13 +946,12 @@ func (h *I2cDev) Eeprom() (string, error) {
 	for n := 0; n < 8; n++ {
 		r := getRegsE()
 		r.block[n].get(h)
-		closeMux(h)
 		err := DoI2cRpc()
 		if err != nil {
 			return "", err
 		}
 		for k := 1; k <= i2c.SMBusMax; k++ {
-			v += fmt.Sprintf("%02x", s[1].D[k])
+			v += fmt.Sprintf("%02x", s[0].D[k])
 		}
 	}
 	return v, nil

@@ -8,24 +8,18 @@ import "github.com/platinasystems/goes-bmc/cmd/fspd"
 
 func fspdInit() {
 	fspd.Vdev[0].Slot = 2
-	fspd.Vdev[0].Bus = 1
+	fspd.Vdev[0].Bus = 12
 	fspd.Vdev[0].Addr = 0x58
 	fspd.Vdev[0].AddrProm = 0x50
-	fspd.Vdev[0].MuxBus = 1
-	fspd.Vdev[0].MuxAddr = 0x72
-	fspd.Vdev[0].MuxValue = 0x01
 	fspd.Vdev[0].GpioPwrok = "PSU0_PWROK"
 	fspd.Vdev[0].GpioPrsntL = "PSU0_PRSNT_L"
 	fspd.Vdev[0].GpioPwronL = "PSU0_PWRON_L"
 	fspd.Vdev[0].GpioIntL = "PSU0_INT_L"
 
 	fspd.Vdev[1].Slot = 1
-	fspd.Vdev[1].Bus = 1
+	fspd.Vdev[1].Bus = 13
 	fspd.Vdev[1].Addr = 0x58
 	fspd.Vdev[1].AddrProm = 0x50
-	fspd.Vdev[1].MuxBus = 1
-	fspd.Vdev[1].MuxAddr = 0x72
-	fspd.Vdev[1].MuxValue = 0x02
 	fspd.Vdev[1].GpioPwrok = "PSU1_PWROK"
 	fspd.Vdev[1].GpioPrsntL = "PSU1_PRSNT_L"
 	fspd.Vdev[1].GpioPwronL = "PSU1_PWRON_L"

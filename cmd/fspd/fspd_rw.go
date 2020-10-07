@@ -62,21 +62,9 @@ func (r *reg32B) offset() uint8 { return uint8(uintptr(unsafe.Pointer(r)) - regs
 func (r *reg16) offset() uint8  { return uint8((uintptr(unsafe.Pointer(r)) - regsAddr) >> 1) }
 func (r *reg16r) offset() uint8 { return uint8((uintptr(unsafe.Pointer(r)) - regsAddr) >> 1) }
 
-func closeMux(h *I2cDev) {
-	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
-
-	data[0] = byte(0)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
-
-}
-
 func (r *reg8) get(h *I2cDev) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	j[x] = I{true, i2c.Read, r.offset(), i2c.ByteData, data, h.Bus, h.Addr, 0}
 	x++
 }
@@ -84,9 +72,6 @@ func (r *reg8) get(h *I2cDev) {
 func (r *reg8b) get(h *I2cDev, readLen byte) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	data[0] = readLen
 	j[x] = I{true, i2c.Read, r.offset(), i2c.I2CBlockData, data, h.Bus, h.Addr, 0}
 	x++
@@ -95,9 +80,6 @@ func (r *reg8b) get(h *I2cDev, readLen byte) {
 func (r *reg32B) get(h *I2cDev) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	data[0] = i2c.SMBusMax
 	j[x] = I{true, i2c.Read, r.offset(), i2c.I2CBlockData, data, h.Bus, h.AddrProm, 0}
 	x++
@@ -106,9 +88,6 @@ func (r *reg32B) get(h *I2cDev) {
 func (r *reg16) get(h *I2cDev) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	j[x] = I{true, i2c.Read, r.offset(), i2c.WordData, data, h.Bus, h.Addr, 0}
 	x++
 }
@@ -116,9 +95,6 @@ func (r *reg16) get(h *I2cDev) {
 func (r *reg16r) get(h *I2cDev) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	j[x] = I{true, i2c.Read, r.offset(), i2c.WordData, data, h.Bus, h.Addr, 0}
 	x++
 }
@@ -126,9 +102,6 @@ func (r *reg16r) get(h *I2cDev) {
 func (r *reg8) set(h *I2cDev, v uint8) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	data[0] = v
 	j[x] = I{true, i2c.Write, r.offset(), i2c.ByteData, data, h.Bus, h.Addr, 0}
 	x++
@@ -137,9 +110,6 @@ func (r *reg8) set(h *I2cDev, v uint8) {
 func (r *reg16) set(h *I2cDev, v uint16) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	data[0] = uint8(v >> 8)
 	data[1] = uint8(v)
 	j[x] = I{true, i2c.Write, r.offset(), i2c.WordData, data, h.Bus, h.Addr, 0}
@@ -149,9 +119,6 @@ func (r *reg16) set(h *I2cDev, v uint16) {
 func (r *reg16r) set(h *I2cDev, v uint16) {
 	var data = [i2c.BlockMax]byte{0, 0, 0, 0}
 
-	data[0] = byte(h.MuxValue)
-	j[x] = I{true, i2c.Write, 0, i2c.ByteData, data, h.MuxBus, h.MuxAddr, 5}
-	x++
 	data[1] = uint8(v >> 8)
 	data[0] = uint8(v)
 	j[x] = I{true, i2c.Write, r.offset(), i2c.WordData, data, h.Bus, h.Addr, 0}
