@@ -184,7 +184,6 @@ func (h *I2cDev) FanTrayLedInit() error {
 	r.Output[1].set(h, 0xff&(fanTrayLedOff[0]|fanTrayLedOff[1]))
 	r.Config[0].set(h, 0xff^fanTrayLeds)
 	r.Config[1].set(h, 0xff^fanTrayLeds)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -209,7 +208,6 @@ func (h *I2cDev) FanTrayLedReinit() error {
 
 	r.Config[0].set(h, 0xff^fanTrayLeds)
 	r.Config[1].set(h, 0xff^fanTrayLeds)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return err
@@ -249,22 +247,20 @@ func (h *I2cDev) FanTrayStatus(i uint8) (string, error) {
 	}
 
 	r.Output[n].get(h)
-	closeMux(h)
 	err := DoI2cRpc()
 	if err != nil {
 		return "error", err
 	}
-	o := s[1].D[0]
+	o := s[0].D[0]
 	d := 0xff ^ fanTrayLedBits[i]
 	o &= d
 
 	r.Input[n].get(h)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return "error", err
 	}
-	rInputNGet := s[1].D[0]
+	rInputNGet := s[0].D[0]
 	if (rInputNGet & fanTrayAbsBits[i]) != 0 {
 		//fan tray is not present, turn LED off
 		w = "not installed"
@@ -311,7 +307,6 @@ func (h *I2cDev) FanTrayStatus(i uint8) (string, error) {
 	}
 
 	r.Output[n].set(h, o)
-	closeMux(h)
 	err = DoI2cRpc()
 	if err != nil {
 		return "error", err

@@ -7,11 +7,8 @@ package main
 import "github.com/platinasystems/goes-bmc/cmd/fantrayd"
 
 func fantraydInit() {
-	fantrayd.Vdev.Bus = 1
+	fantrayd.Vdev.Bus = 14
 	fantrayd.Vdev.Addr = 0x20
-	fantrayd.Vdev.MuxBus = 1
-	fantrayd.Vdev.MuxAddr = 0x72
-	fantrayd.Vdev.MuxValue = 0x04
 
 	fantrayd.VpageByKey = map[string]uint8{
 		"fan_tray.1.status": 1,
