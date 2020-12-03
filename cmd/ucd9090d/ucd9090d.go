@@ -7,7 +7,7 @@ package ucd9090d
 
 import (
 	"fmt"
-	"math"
+	"io/ioutil"
 	"net/rpc"
 	"strconv"
 	"strings"
@@ -138,6 +138,8 @@ func (c *Command) Main(...string) error {
 		case <-t.C:
 			if Vdev.Addr != 0 {
 				if err = c.update(); err != nil {
+					log.Printf("Error from update: %s",
+						err)
 				}
 			}
 		case <-tw.C:
@@ -255,25 +257,19 @@ func (h *I2cDev) Vout(i uint8) (float64, error) {
 	if i > 10 {
 		panic("Voltage rail subscript out of range\n")
 	}
-	i--
 
-	r := getRegs()
-	r.Page.set(h, i)
-	r.VoutMode.get(h)
-	r.ReadVout.get(h)
-	err := DoI2cRpc()
+	file, err := ioutil.ReadFile("/sys/class/hwmon/hwmon1/in" +
+		strconv.Itoa(int(i)) + "_input")
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Error reading hwmon1: %w", err)
 	}
-	n := s[1].D[0] & 0xf
-	n--
-	n = (n ^ 0xf) & 0xf
-	v := uint16(s[2].D[1])<<8 | uint16(s[2].D[0])
+	n, err := strconv.Atoi(strings.TrimSuffix(string(file), "\n"))
+	if err != nil {
+		return 0, fmt.Errorf("Error converting %s to integer: %w", file,
+			err)
+	}
 
-	nn := float64(n) * (-1)
-	vv := float64(v) * (math.Exp2(nn))
-	vv, _ = strconv.ParseFloat(fmt.Sprintf("%.3f", vv), 64)
-	return float64(vv), nil
+	return float64(n) / 1000, nil
 }
 
 func (h *I2cDev) PowerCycles() (string, error) {
@@ -522,7 +518,6 @@ func writeRegs() error {
 			}
 		case "watchdog.timeout.units.seconds":
 			i, err := strconv.ParseInt(v, 10, 64)
-			log.Print("v: ", v, "i: ", i, "err: ", err)
 			if err == nil {
 				watchdogTimeout = uint(i)
 			}
