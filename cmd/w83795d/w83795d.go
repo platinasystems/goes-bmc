@@ -283,8 +283,8 @@ func (h *I2cDev) FrontTemp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	t := uint8(s[2].D[0])
-	u := uint8(s[4].D[0])
+	t := uint8(s[1].D[0])
+	u := uint8(s[2].D[0])
 	v := float64(t) + ((float64(u >> 7)) * 0.25)
 	strconv.FormatFloat(v, 'f', 3, 64)
 	return strconv.FormatFloat(v, 'f', 3, 64), nil
@@ -299,8 +299,8 @@ func (h *I2cDev) RearTemp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	t := uint8(s[2].D[0])
-	u := uint8(s[4].D[0])
+	t := uint8(s[1].D[0])
+	u := uint8(s[2].D[0])
 	v := float64(t) + ((float64(u >> 7)) * 0.25)
 	return strconv.FormatFloat(v, 'f', 3, 64), nil
 }
@@ -338,8 +338,8 @@ func (h *I2cDev) FanCount(i uint8) (uint16, error) {
 		if err != nil {
 			return 0, err
 		}
-		c := [4]byte{s[2].D[0], s[6].D[0], s[10].D[0], s[14].D[0]}
-		l := [4]byte{s[4].D[0], s[8].D[0], s[12].D[0], s[16].D[0]}
+		c := [4]byte{s[1].D[0], s[3].D[0], s[5].D[0], s[7].D[0]}
+		l := [4]byte{s[2].D[0], s[4].D[0], s[6].D[0], s[8].D[0]}
 
 		if c[0] == c[1] && l[0] == l[1] {
 			t = c[0]
@@ -529,7 +529,7 @@ func (h *I2cDev) GetFanDuty() (uint8, error) {
 	if err != nil {
 		return 0, err
 	}
-	m := uint8(s[2].D[0])
+	m := uint8(s[1].D[0])
 	return m, nil
 
 }
@@ -544,8 +544,8 @@ func (h *I2cDev) GetFanSpeed() (string, error) {
 	if err != nil {
 		return "error", err
 	}
-	t := uint8(s[2].D[0])
-	m := uint8(s[4].D[0])
+	t := uint8(s[1].D[0])
+	m := uint8(s[2].D[0])
 
 	if t == 0xff {
 		return "auto", nil
@@ -651,8 +651,8 @@ func (h *I2cDev) GetHwmTarget() (uint16, error) {
 	}
 
 	m := uint16(0)
-	if s[2].D[0] == s[4].D[0] {
-		m = uint16(s[2].D[0])
+	if s[1].D[0] == s[2].D[0] {
+		m = uint16(s[1].D[0])
 	}
 	return m, nil
 }
