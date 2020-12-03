@@ -375,7 +375,7 @@ func (h *I2cDev) LedStatus() error {
 				return err
 			}
 			o = s[0].D[0]
-			c = s[2].D[0]
+			c = s[1].D[0]
 			//if PSU is not installed or installed and powered on, set front panel PSU led to off or green (PSU drives)
 			if strings.Contains(p, "not_installed") || strings.Contains(p, "powered_on") {
 				c |= psuLed[j]
