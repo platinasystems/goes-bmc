@@ -61,6 +61,7 @@ import (
 	"github.com/platinasystems/goes/cmd/iminfo"
 	"github.com/platinasystems/goes/cmd/imx6d"
 	"github.com/platinasystems/goes/cmd/insmod"
+	"github.com/platinasystems/goes/cmd/install"
 	"github.com/platinasystems/goes/cmd/ip"
 	"github.com/platinasystems/goes/cmd/kexec"
 	"github.com/platinasystems/goes/cmd/keys"
@@ -176,11 +177,14 @@ var Goes = &goes.Goes{
 			},
 		},
 		"insmod": insmod.Command{},
-		"ip":     ip.Goes,
-		"ipcfg":  ipcfg.Command{},
-		"kexec":  &kexec.Command{},
-		"keys":   keys.Command{},
-		"kill":   kill.Command{},
+		"install": &install.Command{
+			DefaultArchive: "https://platina.io/goes/rootfs-arm.cpio.xz",
+		},
+		"ip":    ip.Goes,
+		"ipcfg": ipcfg.Command{},
+		"kexec": &kexec.Command{},
+		"keys":  keys.Command{},
+		"kill":  kill.Command{},
 		"ledgpiod": &ledgpiod.Command{
 			Init: ledgpiodInit,
 		},
