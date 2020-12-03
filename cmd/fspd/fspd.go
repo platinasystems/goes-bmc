@@ -721,7 +721,7 @@ func (h *I2cDev) Vout() (string, error) {
 		return "", err
 	}
 	vout := uint16(s[0].D[0]) + (uint16(s[0].D[1]) << 8)
-	voutMode := uint8(s[2].D[0])
+	voutMode := uint8(s[1].D[0])
 	var v float64
 	var errs error
 	if !strings.Contains(h.Model, "CRPS800") {
