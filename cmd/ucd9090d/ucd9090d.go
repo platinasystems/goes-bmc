@@ -265,10 +265,10 @@ func (h *I2cDev) Vout(i uint8) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	n := s[2].D[0] & 0xf
+	n := s[1].D[0] & 0xf
 	n--
 	n = (n ^ 0xf) & 0xf
-	v := uint16(s[4].D[1])<<8 | uint16(s[4].D[0])
+	v := uint16(s[2].D[1])<<8 | uint16(s[2].D[0])
 
 	nn := float64(n) * (-1)
 	vv := float64(v) * (math.Exp2(nn))
