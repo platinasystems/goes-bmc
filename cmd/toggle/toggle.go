@@ -35,16 +35,8 @@ DESCRIPTION
 }
 
 func (Command) Main(args ...string) error {
-	pin, found := gpio.FindPin("CPU_TO_MAIN_I2C_EN")
-	if found {
-		pin.SetValue(true)
-	}
-	time.Sleep(10 * time.Millisecond)
 	uartToggle()
-	if found {
-		pin.SetValue(false)
-	}
-	pin, found = gpio.FindPin("FP_BTN_UARTSEL_EN_L")
+	pin, found := gpio.FindPin("FP_BTN_UARTSEL_EN_L")
 	if found {
 		pin.SetValue(true)
 	}
