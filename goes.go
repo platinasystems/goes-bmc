@@ -179,7 +179,7 @@ var Goes = &goes.Goes{
 		},
 		"insmod": insmod.Command{},
 		"install": &install.Command{
-			DefaultArchive: "https://platina.io/goes/rootfs-arm.cpio.xz",
+			DefaultArchive: "http://platina.io/goes/bmc/rootfs-arm.cpio.xz",
 		},
 		"ip":    ip.Goes,
 		"ipcfg": ipcfg.Command{},
