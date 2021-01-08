@@ -9,3 +9,10 @@
 *.test
 *.zip
 /goes-bmc
+*.deb
+*.bin
+*.xz
+*.vmlinuz
+/worktrees/
+*.tmp
+goes-platina-mk1-bmc
