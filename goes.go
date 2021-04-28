@@ -45,6 +45,7 @@ import (
 	"github.com/platinasystems/goes/cmd/femtocom"
 	"github.com/platinasystems/goes/cmd/ficmd"
 	"github.com/platinasystems/goes/cmd/flash_eraseall"
+	"github.com/platinasystems/goes/cmd/for"
 	"github.com/platinasystems/goes/cmd/function"
 	"github.com/platinasystems/goes/cmd/gpio"
 	"github.com/platinasystems/goes/cmd/grep"
@@ -104,7 +105,10 @@ import (
 	"github.com/platinasystems/goes/cmd/version"
 	"github.com/platinasystems/goes/cmd/watchdog"
 	"github.com/platinasystems/goes/cmd/wget"
+	"github.com/platinasystems/goes/cmd/while"
+
 	"github.com/platinasystems/goes/external/redis/publisher"
+
 	"github.com/platinasystems/goes/lang"
 )
 
@@ -140,6 +144,7 @@ var Goes = &goes.Goes{
 		"femtocom":       femtocom.Command{},
 		"fi":             &ficmd.Command{},
 		"flash_eraseall": flash_eraseall.Command{},
+		"for":            forcmd.Command{},
 		"fspd": &fspd.Command{
 			Init: fspdInit,
 		},
@@ -267,6 +272,7 @@ var Goes = &goes.Goes{
 			Init: ucd9090dInit,
 		},
 		"umount":  umount.Command{},
+		"until":   whilecmd.Command{IsUntil: true},
 		"upgrade": &upgrade.Command{},
 		"uptime":  uptime.Command{},
 		"uptimed": uptimed.Command{},
@@ -276,6 +282,7 @@ var Goes = &goes.Goes{
 		"watchdog": &watchdog.Command{
 			GpioPin: "BMC_WDI",
 		},
-		"wget": wget.Command{},
+		"wget":  wget.Command{},
+		"while": whilecmd.Command{},
 	},
 }
