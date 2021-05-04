@@ -1,7 +1,9 @@
 package upgrade
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -10,39 +12,40 @@ const (
 )
 
 type getFil struct {
-	srv    string
-	vrs    string
-	ftp    bool
-	result int
+	srv        string
+	shouldFail bool
 }
 
 var GFtests = []getFil{
-	{DfltSrv, DfltVer, false, 10},
-	{TFTPserver, DfltVer, true, 10},
+	{srv: "http://" + DfltSrv + "/" + DfltVer},
+	{srv: "http://" + DfltSrv + "/" + "NONEXISTENT", shouldFail: true},
+	//	{TFTPserver, DfltVer},
 }
 
 func TestGetFile(t *testing.T) {
-	fn := "LIST"
+	TmpDir = "/tmp"
 	for _, pair := range GFtests {
-		n, err := getFile(pair.srv, pair.vrs, pair.ftp, fn)
+		fmt.Printf("Opening %s\n", pair.srv)
+		_, err := getFile(pair.srv, ArchiveName)
 		if err != nil {
+			if pair.shouldFail {
+				fmt.Printf("Got expected error %s\n",
+					err)
+				continue
+			}
 			t.Errorf("HTTP: Error downloading: %v", err)
 			return
 		}
+		if pair.shouldFail {
+			t.Errorf("Did not get error opening %s", pair.srv)
+		}
+		fn := filepath.Join(TmpDir, ArchiveName)
 		if _, err = os.Stat(fn); os.IsNotExist(err) {
 			t.Errorf("HTTP: File did not get created, error: %v", err)
 			return
 		}
-		if err = rmFile(fn); err != nil {
+		if err = rmFile(ArchiveName); err != nil {
 			t.Errorf("HTTP: File did not get removed, error: %v", err)
-			return
-		}
-		if n < pair.result {
-			t.Error(
-				"For", pair.srv, pair.vrs, pair.ftp,
-				"expected", pair.result,
-				"got", n,
-			)
 			return
 		}
 	}
@@ -84,7 +87,7 @@ func TestIsVersionNewer(t *testing.T) {
 }
 
 func TestRmFile(t *testing.T) {
-	fn := "/tmp/tempfile"
+	fn := filepath.Join(TmpDir, "tempfile")
 	f, err := os.Create(fn)
 	if err != nil {
 		t.Errorf("Could not create file, error: %v", err)
@@ -95,7 +98,7 @@ func TestRmFile(t *testing.T) {
 		t.Errorf("File did not get created, error: %v", err)
 		return
 	}
-	if err = rmFile(fn); err != nil {
+	if err = rmFile("tempfile"); err != nil {
 		t.Errorf("Error during remove file: %v", err)
 		return
 	}
