@@ -138,7 +138,6 @@ func (c *Command) Main(...string) error {
 			c.updateMon()
 		}
 	}
-	return nil
 }
 
 func (c *Command) update() error {

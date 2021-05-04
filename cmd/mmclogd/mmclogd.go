@@ -87,7 +87,6 @@ func (c *Command) Main(...string) error {
 			}
 		}
 	}
-	return nil
 }
 
 func (c *Command) update() error {
