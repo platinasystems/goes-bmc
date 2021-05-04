@@ -28,10 +28,10 @@ const (
 	ArchiveName = Machine + ".zip"
 	VersionName = Machine + "-ver.bin"
 	V2Name      = Machine + "-v2"
-	TmpDir      = "/var/run/goes/upgrade"
 )
 
 var legacy bool
+var TmpDir = "/var/run/goes/upgrade"
 
 type Command struct {
 	g *goes.Goes
@@ -257,7 +257,7 @@ func (c *Command) doUpgrade(isUbi bool, s string,
 		if sv != "dev" && qv != "dev" {
 			newer, err := isVersionNewer(qv, sv)
 			if err != nil {
-				fmt.Printf("Aborting, server version error\n", sv)
+				fmt.Printf("Aborting, server version error %s\n", sv)
 				fmt.Printf("Use -f to force upgrade.\n")
 				return nil
 			}
@@ -280,7 +280,8 @@ func (c *Command) doUpgrade(isUbi bool, s string,
 	err = ioutil.WriteFile(filepath.Join(TmpDir, Machine+"-per.bin"), perFile,
 		0644)
 	if err != nil {
-		return fmt.Errorf("Error creating %s-per.bin - aborting!")
+		return fmt.Errorf("Error %s creating %s-per.bin - aborting!",
+			err, Machine)
 	}
 
 	// If we are explicitly forcing legacy, and downgrading from UBI
