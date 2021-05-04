@@ -37,7 +37,7 @@ func getFile(s string, fn string) (int, error) {
 	urls := s + "/" + fn
 	r, err := url.Open(urls)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	f, err := os.OpenFile(filepath.Join(TmpDir, fn),
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, DfltMod)
