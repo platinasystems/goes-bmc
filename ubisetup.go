@@ -166,7 +166,7 @@ func ubiSetup() (err error) {
 		perDevName := "/dev/mtd" + strconv.Itoa(perDev)
 		per, err := ioutil.ReadFile(perDevName)
 		if err != nil {
-			fmt.Errorf("Error reading %s: %w", perDevName, err)
+			return fmt.Errorf("Error reading %s: %w", perDevName, err)
 		}
 
 		perNoNul := ""
@@ -211,7 +211,7 @@ func ubiSetup() (err error) {
 		_, _, e := syscall.Syscall(syscall.SYS_IOCTL, m.Fd(),
 			uintptr(MEMGETINFO), uintptr(unsafe.Pointer(mi)))
 		if e != 0 {
-			fmt.Errorf("Error getting info on %s: %w", ubiDevName, e)
+			return fmt.Errorf("Error getting info on %s: %w", ubiDevName, e)
 		}
 		ei := &EraseInfo{0, mi.erasesize}
 		for ei.start = 0; ei.start < mi.size; ei.start += mi.erasesize {
