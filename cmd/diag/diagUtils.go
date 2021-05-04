@@ -101,7 +101,7 @@ func diagI2cPingWord(b uint8, a uint8, c uint8, count int) (bool, uint32) {
 		if debug {
 			fmt.Println(err)
 		}
-		return false, uint32((sd[1] << 8) | sd[0])
+		return false, uint32(sd[1])<<8 | uint32(sd[0])
 	}
 	defer bus.Close()
 
@@ -110,7 +110,7 @@ func diagI2cPingWord(b uint8, a uint8, c uint8, count int) (bool, uint32) {
 		if debug {
 			fmt.Println(err)
 		}
-		return false, uint32((sd[1] << 8) | sd[0])
+		return false, uint32(sd[1])<<8 | uint32(sd[0])
 	}
 	for i := 0; i < count; i++ {
 		err = bus.Do(rw, c, op, &sd)
@@ -118,13 +118,13 @@ func diagI2cPingWord(b uint8, a uint8, c uint8, count int) (bool, uint32) {
 			if debug {
 				fmt.Println(err)
 			}
-			return false, uint32((sd[1] << 8) | sd[0])
+			return false, uint32(sd[1])<<8 | uint32(sd[0])
 		}
 		if debug {
 			fmt.Printf("%x.%02x.%02x = %02x\n", b, a, c, sd[0])
 		}
 	}
-	return true, uint32((sd[1] << 8) | sd[0])
+	return true, uint32(sd[1])<<8 | uint32(sd[0])
 }
 
 // write 1byte to bus b device address a (i.e. set mux channel)
@@ -199,7 +199,7 @@ func diagI2cWriteOffsetByte(b uint8, a uint8, c uint8, d uint8) {
 func gpioGet(name string) (bool, error) {
 	pin, found := gpio.FindPin(name)
 	if !found {
-		return false, fmt.Errorf("%s: not found")
+		return false, fmt.Errorf("%s: not found", name)
 	}
 	return pin.Value()
 }
@@ -208,7 +208,7 @@ func gpioGet(name string) (bool, error) {
 func gpioSet(name string, value bool) error {
 	pin, found := gpio.FindPin(name)
 	if !found {
-		return fmt.Errorf("%s: not found")
+		return fmt.Errorf("%s: not found", name)
 	}
 	return pin.SetValue(value)
 }
