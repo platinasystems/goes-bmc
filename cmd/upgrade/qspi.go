@@ -267,12 +267,12 @@ func readQSPI(of uint32, sz uint32) (int, []byte, error) {
 	b := make([]byte, sz)
 	_, err := syscall.Seek(fd, int64(of), 0)
 	if err != nil {
-		err = fmt.Errorf("Seek error: %s: %s", of, err)
+		err = fmt.Errorf("Seek error: %x: %s", of, err)
 		return 0, b, err
 	}
 	n, err := syscall.Read(fd, b)
 	if err != nil {
-		err = fmt.Errorf("Read error %s: %s", of, err)
+		err = fmt.Errorf("Read error %x: %s", of, err)
 		return 0, b, err
 	}
 	return n, b, nil
@@ -281,12 +281,12 @@ func readQSPI(of uint32, sz uint32) (int, []byte, error) {
 func writeQSPI(b []byte, of uint32) (int, error) {
 	_, err := syscall.Seek(fd, int64(of), 0)
 	if err != nil {
-		err = fmt.Errorf("Seek error: %s: %s", of, err)
+		err = fmt.Errorf("Seek error: %d: %s", of, err)
 		return 0, err
 	}
 	n, err := syscall.Write(fd, b)
 	if err != nil {
-		err = fmt.Errorf("Write error %s: %s", of, err)
+		err = fmt.Errorf("Write error %d: %s", of, err)
 		return 0, err
 	}
 	return n, nil
@@ -300,7 +300,7 @@ func eraseQSPI(of uint32, sz uint32) error {
 		_, _, e := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd),
 			uintptr(MEMERASE), uintptr(unsafe.Pointer(ei)))
 		if e != 0 {
-			err := fmt.Errorf("Erase error %s: %s", ei.start, e)
+			err := fmt.Errorf("Erase error %x: %s", ei.start, e)
 			return err
 		}
 	}
