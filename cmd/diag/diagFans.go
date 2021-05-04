@@ -23,7 +23,7 @@ func diagFans() error {
 		w83795dBus = 11
 		w83795dAdr = 0x2f
 	)
-	var hw = w83795d.I2cDev{w83795dBus, w83795dAdr}
+	var hw = w83795d.I2cDev{Bus: w83795dBus, Addr: w83795dAdr}
 
 	fmt.Printf("\n%15s|%25s|%10s|%10s|%10s|%10s|%6s|%35s\n", "function", "parameter", "units", "value", "min", "max", "result", "description")
 	fmt.Printf("---------------|-------------------------|----------|----------|----------|----------|------|-----------------------------------\n")

@@ -26,7 +26,7 @@ func diagPower() error {
 		CH1LC uint8 = 0x05
 	)
 
-	pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr}
+	pm = ucd9090d.I2cDev{Bus: ucd9090dBus, Addr: ucd9090dAdr}
 
 	d := eeprom.Device{
 		BusIndex:   0,
@@ -175,7 +175,7 @@ func diagLoggedFaults() error {
 		ucd9090dBus = 4
 		ucd9090dAdr = 0x34
 	)
-	var pm = ucd9090d.I2cDev{ucd9090dBus, ucd9090dAdr}
+	var pm = ucd9090d.I2cDev{Bus: ucd9090dBus, Addr: ucd9090dAdr}
 
 	d := eeprom.Device{
 		BusIndex:   0,
